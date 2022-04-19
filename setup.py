@@ -21,7 +21,7 @@ setup_args = dict(
 python_requires = ">=3.7, <4"
 
 install_requires = [
-    'request'
+    'requests>2.10'
 ]
 
 if __name__ == '__main__':

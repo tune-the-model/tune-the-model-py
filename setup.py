@@ -5,7 +5,7 @@ with open('README.md') as readme_file:
 
 setup_args = dict(
     name='model_one',
-    version='0.0.3',
+    version='0.0.4',
     description='beyondml',
     long_description_content_type="text/markdown",
     long_description=README,

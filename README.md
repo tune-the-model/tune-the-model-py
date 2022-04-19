@@ -4,7 +4,6 @@
 
 Model One can do almost anything that requires understanding or generating natural language. Model One is able to solve tasks in 12 languages: English, Spanish, Portuguese, Russian, Turkish, French, German, Italian, Arabic, Polish, Dutch, and Hebrew.
 
-
 This package provides a simple wrapper for using our api.
 
 Using `model-one` package allows you to train and apply models.
@@ -36,7 +35,7 @@ tdf = pd.read_csv('train.csv')
 vdf = pd.read_csv('test.csv')
 
 # upload datasets 
-model.upload(tdf['inputs'], inputs['outputs'], vdf['inputs'], inputs['outputs'])
+model.upload(tdf['inputs'], tdf['outputs'], vdf['inputs'], vdf['outputs'])
 model.fit()
 
 # wait...

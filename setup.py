@@ -5,7 +5,7 @@ with open('README.md') as readme_file:
 
 setup_args = dict(
     name='model_one',
-    version='0.0.2',
+    version='0.0.3',
     description='beyondml',
     long_description_content_type="text/markdown",
     long_description=README,
@@ -21,7 +21,7 @@ setup_args = dict(
 python_requires = ">=3.7, <4"
 
 install_requires = [
-    'request>2.10'
+    'request'
 ]
 
 if __name__ == '__main__':

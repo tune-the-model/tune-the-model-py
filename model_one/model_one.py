@@ -2,16 +2,17 @@ from array import array
 import json
 from time import time
 import requests
+import os.path
 
-import beyondml
+import model_one
 
 
 def _models_api():
-    return '{}/v0/models'.format(beyondml.api_url)
+    return '{}/v0/models'.format(model_one.api_url)
 
 
 def _get_auth_header():
-    return {'Authorization': beyondml.api_key}
+    return {'Authorization': model_one.api_key}
 
 
 class BeyondmlModel():
@@ -87,10 +88,12 @@ class BeyondmlModel():
         return r.json()
 
     def generate(self, input):
-        return self._inference('generate', input)
+        res = self._inference('generate', input)
+        return res['answer']['responses'][0]['response']
 
     def classify(self, input):
-        return self._inference('classify', input)
+        res = self._inference('classify', input)
+        return res
 
     def status(self):
         if not self._id:
@@ -111,6 +114,11 @@ class BeyondmlModel():
             }, fl)
 
 
+def load(filename):
+    with open(filename, 'r') as fl:
+        return BeyondmlModel(json.load(fl))
+
+
 def _create(data):
     headers = _get_auth_header()
     headers['Content-Type'] = 'application/json'
@@ -120,19 +128,22 @@ def _create(data):
     return BeyondmlModel(r.json())
 
 
-def create_generative():
-    o = {'model_type': 'generative'}
-    return _create(o)
+def _create_or_load(data: dict, filename: str = None):
+    if filename is not None and os.path.isfile(filename):
+        model = load(filename)
+        if model._model_type != data['model_type']:
+            raise Exception(
+                'Model in the file is not {}'.format(data['model_type']))
+        return model
+    return _create(data)
 
 
-def create_classification():
-    o = {'model_type': 'classification'}
-    return _create(o)
+def create_generator(filename: str = None):
+    return _create_or_load({'model_type': 'generator'}, filename)
 
 
-def load(filename):
-    with open(filename, 'r') as fl:
-        return BeyondmlModel(json.load(fl))
+def create_classifier(filename: str = None):
+    return _create_or_load({'model_type': 'classifier'}, filename)
 
 
 def models():

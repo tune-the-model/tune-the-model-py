@@ -18,18 +18,18 @@ To install the package just use `pip --install model-one`.
 ### Usage
 
 ```py
-import beyondml
+import model_one
 import pandas as pd
 
-beyondml.api_key = 'YOUR_API_KEY'
+model_one.api_key = 'YOUR_API_KEY'
 
 # create a model
-model = beyondml.create_generative()
+model = model_one.create_generative()
 
 # save the model for further usage
-model.save('filename.bml')
+model.save('filename.json')
 # if you want to load
-model = beyondml.load('filename.bml')
+model = model_one.load('filename.json')
 
 tdf = pd.read_csv('train.csv')
 vdf = pd.read_csv('test.csv')

@@ -66,7 +66,10 @@ class BeyondmlModel():
             else:
                 raise Exception('Unknown model type.')
             return json.dumps(data)
-
+        magic_const = 32
+        if len(train_X) < magic_const or len(train_X) < magic_const or len(train_X) < magic_const or len(train_X) < magic_const:
+            raise Exception(
+                'Dataset must be contain at least {} elements'.format(magic_const))
         return self._api_post_request('upload', build_data(self))
 
     def upload(self, train_X, train_y, validate_X, validate_y):

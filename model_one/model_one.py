@@ -1,5 +1,6 @@
 from array import array
 import json
+from re import M
 from time import time
 import requests
 import os.path
@@ -116,6 +117,15 @@ class BeyondmlModel():
                 'model_type': self._model_type,
             }, fl)
 
+    def _upload_fit(self, train_X, train_y, validate_X, validate_y):
+        self.status()
+        if self._status == 'Created':
+            self.upload(train_X, train_y, validate_X, validate_y)
+
+        if self._status == 'DatasetsLoaded':
+            self.fit()
+        return self
+
 
 def load(filename):
     with open(filename, 'r') as fl:
@@ -166,3 +176,13 @@ def get_model(id):
     if r.status_code != 200:
         raise Exception(r.text)
     return BeyondmlModel(r.json())
+
+
+def train_generator(filename: str, train_X, train_y, validate_X, validate_y):
+    model = create_generator(filename)
+    return model._upload_fit(train_X, train_y, validate_X, validate_y)
+
+
+def train_classifier(filename: str, train_X, train_y, validate_X, validate_y):
+    model = create_classifier(filename)
+    return model._upload_fit(train_X, train_y, validate_X, validate_y)

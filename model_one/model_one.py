@@ -13,7 +13,7 @@ def _models_api():
 
 
 def _get_auth_header():
-    return {'Authorization': model_one.api_key}
+    return {'Authorization': model_one.API_KEY}
 
 
 class BeyondmlModel():
@@ -148,12 +148,12 @@ def _create_or_load(data: dict, filename: str = None):
             raise Exception(
                 'Model in the file is not {}'.format(data['model_type']))
         return model
-    return _create(data)
-
+    m = _create(data)
+    m.save(filename)
+    return m
 
 def create_generator(filename: str = None):
     return _create_or_load({'model_type': 'generator'}, filename)
-
 
 def create_classifier(filename: str = None):
     return _create_or_load({'model_type': 'classifier'}, filename)

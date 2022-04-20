@@ -1,8 +1,10 @@
 from model_one.model_one import (
-    create_classification,
-    create_generative,
+    create_classifier,
+    create_generator,
     get_model,
     models,
+    train_generator,
+    train_classifier,
     BeyondmlModel
 )
 
@@ -12,12 +14,14 @@ API_KEY = os.environ.get("BEYONDML_API_KEY")
 api_url = 'https://api.beyond.ml'
 
 __all__ = [
-    'api',
+    'model_one',
     'API_KEY',
     'api_url',
-    'create_classification',
-    'create_generative',
+    'create_classifier',
+    'create_generator',
     'get_model',
     'models',
+    'train_generator',
+    'train_classifier',
     'BeyondmlModel'
 ]

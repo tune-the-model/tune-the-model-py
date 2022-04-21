@@ -163,10 +163,11 @@ def models():
     r = requests.get(_models_api(), headers=_get_auth_header())
     if r.status_code != 200:
         raise Exception(r.text)
-
+    res = r.json()
     res = []
-    for k in r.json()['models']:
-        res.append(BeyondmlModel(k))
+    if 'models' in res:
+        for k in res['models']:
+            res.append(BeyondmlModel(k))
     return res
 
 

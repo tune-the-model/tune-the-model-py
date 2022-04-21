@@ -4,6 +4,7 @@ from re import M
 from time import time
 import requests
 import os.path
+import urllib.parse
 
 import model_one
 
@@ -86,18 +87,18 @@ class BeyondmlModel():
             raise Exception('prompt must not be empty')
 
         r = requests.get('{}/{}/{}?input={}'.format(_models_api(),
-                         self._id, method, input), headers=_get_auth_header())
+                         self._id, method, urllib.parse.quote(input)), headers=_get_auth_header())
         if r.status_code != 200:
             raise Exception(r.text)
         return r.json()
 
     def generate(self, input):
-        res = self._inference('generate', input)
+        res = self._inference(method='generate', input=input)
         return res['answer']['responses'][0]['response']
 
     def classify(self, input):
-        res = self._inference('classify', input)
-        return res
+        res = self._inference(method='classify', input=input)
+        return res['answer']['scores']
 
     def status(self):
         if not self._id:

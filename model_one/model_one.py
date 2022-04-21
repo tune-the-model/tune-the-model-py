@@ -58,10 +58,10 @@ class BeyondmlModel():
                     'inputs': validate_X,
                 }
             }
-            if self._model_type == 'generative':
+            if self._model_type == 'generator':
                 data['train_dataset']['outputs'] = train_y
                 data['validate_dataset']['outputs'] = validate_y
-            elif self._model_type == 'classification':
+            elif self._model_type == 'classifier':
                 data['train_dataset']['classes'] = train_y
                 data['validate_dataset']['classes'] = validate_y
             else:

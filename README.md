@@ -21,10 +21,10 @@ To install the package just use `pip --install model-one`.
 import model_one
 import pandas as pd
 
-model_one.api_key = 'YOUR_API_KEY'
+model_one.API_KEY = 'YOUR_API_KEY'
 
 # create a model
-model = model_one.create_generative()
+model = model_one.create_generator()
 
 # save the model for further usage
 model.save('filename.json')

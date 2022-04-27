@@ -1,17 +1,14 @@
-from model_one.model_one import (
+from model_one.cli import (
     create_classifier,
     create_generator,
     get_model,
     models,
     train_generator,
     train_classifier,
-    BeyondmlModel
+    BeyondmlModel,
+    api_url,
+    API_KEY
 )
-
-import os
-
-API_KEY = os.environ.get("BEYONDML_API_KEY")
-api_url = 'https://api.beyond.ml'
 
 __all__ = [
     'model_one',

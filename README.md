@@ -21,15 +21,10 @@ To install the package just use `pip --install model-one`.
 import model_one
 import pandas as pd
 
-model_one.API_KEY = 'YOUR_API_KEY'
+model_one.cli.API_KEY = 'YOUR_API_KEY'
 
-# create a model
-model = model_one.create_generator()
-
-# save the model for further usage
-model.save('filename.json')
-# if you want to load
-model = model_one.load('filename.json')
+# get or create a model
+model = model_one.create_generator('filename.json')
 
 tdf = pd.read_csv('train.csv')
 vdf = pd.read_csv('test.csv')

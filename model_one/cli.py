@@ -6,15 +6,17 @@ import requests
 import os.path
 import urllib.parse
 
-import model_one
+import os
 
+API_KEY = os.environ.get("BEYONDML_API_KEY")
+api_url = 'https://api.beyond.ml'
 
 def _models_api():
-    return '{}/v0/models'.format(model_one.api_url)
+    return '{}/v0/models'.format(api_url)
 
 
 def _get_auth_header():
-    return {'Authorization': model_one.API_KEY}
+    return {'Authorization': API_KEY}
 
 
 class BeyondmlModel():

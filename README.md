@@ -13,7 +13,7 @@ Using `model-one` package allows you to train and apply models.
 Firstly fill out the [form](https://beyond.ml/model-one#rec435480002) to get a key to access the API. We will send you the key within a day.
 
 ### Install
-To install the package just use `pip --install model-one`.
+To install the package just use `pip install model-one`.
 
 ### Usage
 

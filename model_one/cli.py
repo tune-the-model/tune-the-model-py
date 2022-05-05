@@ -10,6 +10,7 @@ from pandas import Series
 
 
 API_KEY = os.environ.get("BEYONDML_API_KEY")
+API_URL = "https://api.beyond.ml"
 MINIMUM_ENTRIES = 32
 
 
@@ -18,16 +19,14 @@ class BeyondmlModelException(RuntimeError):
 
 
 class BeyondmlAPI():
-    URL: str = "https://api.beyond.ml"
-
     V0: dict = {
-        "create": ("POST", f"{URL}/v0/models"),
-        "models": ("GET", f"{URL}/v0/models"),
-        "generate": ("POST", f"{URL}/v0/{{}}/generate"),
-        "classify": ("POST", f"{URL}/v0/{{}}/classify"),
-        "upload": ("POST", f"{URL}/v0/{{}}/upload"),
-        "status": ("POST", f"{URL}/v0/{{}}/status"),
-        "fit": ("POST", f"{URL}/v0/{{}}/fit"),
+        "create": ("POST", f"{API_URL}/v0/models"),
+        "models": ("GET", f"{API_URL}/v0/models"),
+        "generate": ("POST", f"{API_URL}/v0/{{}}/generate"),
+        "classify": ("POST", f"{API_URL}/v0/{{}}/classify"),
+        "upload": ("POST", f"{API_URL}/v0/{{}}/upload"),
+        "status": ("POST", f"{API_URL}/v0/{{}}/status"),
+        "fit": ("POST", f"{API_URL}/v0/{{}}/fit"),
     }
 
     @classmethod
@@ -83,13 +82,13 @@ class BeyondmlAPI():
         return cls._request(method, url.format(id))
 
 
-class BeyondmlModelStatus(Enum, str):
+class BeyondmlModelStatus(str, Enum):
     READY = "ready"
     CREATED = "created"
     DATASETS_LOADED = "datasetsloaded"
 
 
-class BeyondmlModelType(Enum, str):
+class BeyondmlModelType(str. Enum):
     GENERATOR = "generator"
     CLASSIFIER = "classifier"
 

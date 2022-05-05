@@ -155,11 +155,17 @@ def _create_or_load(data: dict, filename: str = None):
     m.save(filename)
     return m
 
-def create_generator(filename: str = None):
-    return _create_or_load({'model_type': 'generator'}, filename)
+def create_generator(filename: str = None, train_iters : int = None):
+    model = {'model_type': 'generator'}
+    if train_iters:
+        model.update({'model_params': {'train_iters': train_iters}})
+    return _create_or_load(model, filename)
 
-def create_classifier(filename: str = None):
-    return _create_or_load({'model_type': 'classifier'}, filename)
+def create_classifier(filename: str = None, train_iters : int = None):
+    model = {'model_type': 'classifier'}
+    if train_iters:
+        model.update({'model_params': {'train_iters': train_iters}})
+    return _create_or_load(model, filename)
 
 
 def models():
@@ -182,11 +188,11 @@ def get_model(id):
     return BeyondmlModel(r.json())
 
 
-def train_generator(filename: str, train_X, train_y, validate_X, validate_y):
-    model = create_generator(filename)
+def train_generator(filename: str, train_X, train_y, validate_X, validate_y, train_iters : int = None):
+    model = create_generator(filename, train_iters)
     return model._upload_fit(train_X, train_y, validate_X, validate_y)
 
 
-def train_classifier(filename: str, train_X, train_y, validate_X, validate_y):
-    model = create_classifier(filename)
+def train_classifier(filename: str, train_X, train_y, validate_X, validate_y, train_iters : int = None):
+    model = create_classifier(filename, train_iters)
     return model._upload_fit(train_X, train_y, validate_X, validate_y)

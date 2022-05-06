@@ -1,198 +1,342 @@
-from array import array
-import json
-from re import M
-from time import time
-import requests
-import os.path
-import urllib.parse
-
 import os
+import json
+import requests
+
+from enum import Enum
+from functools import wraps
+from time import sleep
+from typing import Optional, List, Union
+
+from pandas import Series
+
 
 API_KEY = os.environ.get("BEYONDML_API_KEY")
-api_url = 'https://api.beyond.ml'
-
-def _models_api():
-    return '{}/v0/models'.format(api_url)
+API_URL = "https://api.beyond.ml"
+MINIMUM_ENTRIES = 32
 
 
-def _get_auth_header():
-    return {'Authorization': API_KEY}
+class BeyondmlModelException(RuntimeError):
+    pass
+
+
+class BeyondmlAPI():
+    V0: dict = {
+        "create": ("POST", f"{API_URL}/v0/models"),
+        "models": ("GET", f"{API_URL}/v0/models"),
+        "generate": ("GET", f"{API_URL}/v0/models/{{}}/generate"),
+        "classify": ("GET", f"{API_URL}/v0/models/{{}}/classify"),
+        "upload": ("POST", f"{API_URL}/v0/models/{{}}/upload"),
+        "status": ("GET", f"{API_URL}/v0/models/{{}}/status"),
+        "fit": ("POST", f"{API_URL}/v0/models/{{}}/fit"),
+    }
+
+    @classmethod
+    def _request(cls, method: str, url: str, params: Optional[dict] = None, data: Optional[dict] = None) -> dict:
+        headers = {"Authorization": API_KEY, }
+
+        if data is not None:
+            headers["Content-Type"] = "application/json"
+
+        r = requests.request(method, url, params=params,
+                             data=data, headers=headers)
+
+        if r.status_code != 200:
+            raise BeyondmlModelException(r.text)
+
+        return r.json()
+
+    @classmethod
+    def create(cls, data: dict) -> dict:
+        return cls._request(*cls.V0["create"], data=json.dumps(data))
+
+    @classmethod
+    def models(cls) -> dict:
+        return cls._request(*cls.V0["models"])
+
+    @classmethod
+    def classify(cls, id: str, input: str) -> dict:
+        method, url = cls.V0["classify"]
+
+        return cls._request(method, url.format(id), params={"input": input})
+
+    @classmethod
+    def generate(cls, id: str, input: str) -> dict:
+        method, url = cls.V0["generate"]
+
+        return cls._request(method, url.format(id), params={"input": input})
+
+    @classmethod
+    def upload(cls, id: str, data: dict) -> dict:
+        method, url = cls.V0["upload"]
+
+        return cls._request(method, url.format(id), data=data)
+
+    @classmethod
+    def status(cls, id: str) -> dict:
+        method, url = cls.V0["status"]
+
+        return cls._request(method, url.format(id))
+
+    @classmethod
+    def fit(cls, id: str) -> dict:
+        method, url = cls.V0["fit"]
+
+        return cls._request(method, url.format(id))
+
+
+class BeyondmlModelStatus(str, Enum):
+    READY = "ready"
+    CREATED = "created"
+    DATASETS_LOADED = "datasetsloaded"
+    TRAIN_REQUESTED = "trainrequested"
+    TRAINING = "readytofit"
+    FAILED = "fitfailed"
+
+
+class BeyondmlModelType(str, Enum):
+    GENERATOR = "generator"
+    CLASSIFIER = "classifier"
+
+
+def inited(m: callable):
+    @wraps(m)
+    def _wrapper(self: 'BeyondmlModel', *args, **kwargs):
+        if not self.is_inited:
+            raise BeyondmlModelException("Initialize the model")
+
+        return m(self, *args, **kwargs)
+
+    return _wrapper
 
 
 class BeyondmlModel():
-    def __init__(self, model=None):
-        if model is not None:
-            self._id = model['model_name']
-            self._status = model['status']
-            self._model_type = model['model_type']
-        return
+    _id: str = None
+    _status: str = None
+    _model_type: str = None
 
-    def __repr__(self):
-        return str({'id': self._id, 'status': self._status, 'model_type': self._model_type})
+    def __init__(self, model_name: str, status: str, model_type: str, *args, **kwargs):
+        self._id = model_name
+        self._status = status
+        self._model_type = model_type
 
-    def __str__(self):
-        return str({'id': self._id, 'status': self._model_type, 'model_type': self._model_type})
+    @classmethod
+    def from_dict(cls, model: dict) -> 'BeyondmlModel':
+        return cls(**model)
 
-    def _api_post_request(self, handler, data):
-        if not self._id:
-            raise Exception('Initialize the model.')
-        headers = _get_auth_header()
-        headers['Content-Type'] = 'application/json'
-        url = '{}/{}/{}'.format(_models_api(), self._id, handler)
-        r = requests.post(url, headers=headers, data=data)
-        if r.status_code != 200:
-            raise Exception(r.text)
-        self._status = r.json()['status']
-        return r.json()
+    @classmethod
+    def from_id(cls, id: str) -> 'BeyondmlModel':
+        r = BeyondmlAPI.status(id)
+        return cls.from_dict(r)
 
-    def fit(self):
-        return self._api_post_request('fit', '')
+    @classmethod
+    def create(cls, data: dict) -> 'BeyondmlModel':
+        r = BeyondmlAPI.create(data)
+        return cls.from_dict(r)
 
-    def is_ready(self):
-        return self._status.lower() == 'ready'
+    @classmethod
+    def create_classifier(cls, train_iters: int = None):
+        model = {"model_type": "classifier"}
 
-    def upload_arrays(self, train_X, train_y, validate_X, validate_y):
-        def build_data(self):
-            data = {
-                'train_dataset': {
-                    'inputs': train_X,
-                },
-                'validate_dataset': {
-                    'inputs': validate_X,
-                }
-            }
-            if self._model_type == 'generator':
-                data['train_dataset']['outputs'] = train_y
-                data['validate_dataset']['outputs'] = validate_y
-            elif self._model_type == 'classifier':
-                data['train_dataset']['classes'] = train_y
-                data['validate_dataset']['classes'] = validate_y
-            else:
-                raise Exception('Unknown model type.')
-            return json.dumps(data)
-        magic_const = 32
-        if len(train_X) < magic_const or len(train_X) < magic_const or len(train_X) < magic_const or len(train_X) < magic_const:
-            raise Exception(
-                'Dataset must be contain at least {} elements'.format(magic_const))
-        return self._api_post_request('upload', build_data(self))
+        if train_iters:
+            model["model_params"] = {"train_iters": train_iters}
 
-    def upload(self, train_X, train_y, validate_X, validate_y):
-        from pandas import Series
-        if not (isinstance(train_X, Series) and isinstance(train_X, Series)
-                and isinstance(train_X, Series) and isinstance(train_X, Series)):
-            raise Exception('Try upload_arrays.')
+        return cls.create(model)
 
-        return self.upload_arrays(train_X.tolist(), train_y.tolist(), validate_X.tolist(), validate_y.tolist())
+    @classmethod
+    def create_generator(cls, train_iters: int = None):
+        model = {"model_type": "generator"}
 
-    def _inference(self, method, input):
-        if not input:
-            raise Exception('prompt must not be empty')
+        if train_iters:
+            model["model_params"] = {"train_iters": train_iters}
 
-        r = requests.get('{}/{}/{}?input={}'.format(_models_api(),
-                         self._id, method, urllib.parse.quote(input)), headers=_get_auth_header())
-        if r.status_code != 200:
-            raise Exception(r.text)
-        return r.json()
+        return cls.create(model)
 
-    def generate(self, input):
-        res = self._inference(method='generate', input=input)
-        return res['answer']['responses'][0]['response']
+    @classmethod
+    def models(cls) -> List['BeyondmlModel']:
+        r = BeyondmlAPI.models()
 
-    def classify(self, input):
-        res = self._inference(method='classify', input=input)
-        return res['answer']['scores']
+        return [
+            cls.from_dict(data) for data in r.get("models", [])
+        ]
 
-    def status(self):
-        if not self._id:
-            raise Exception('Initialize the model.')
-        r = requests.get('{}/{}/{}'.format(_models_api(),
-                         self._id, 'status'), headers=_get_auth_header())
-        if r.status_code != 200:
-            raise Exception(r.text)
-        self._status = r.json()['status']
-        return r.json()
+    @classmethod
+    def load(cls, filename: str) -> 'BeyondmlModel':
+        with open(filename, "r") as fl:
+            data = json.load(fl)
+            return cls.from_dict(data)
 
+    @classmethod
+    def load_or_create(cls, filename: str, data: dict) -> 'BeyondmlModel':
+        if os.path.isfile(filename):
+            model = cls.load(filename)
+            if model.type != data["model_type"]:
+                raise BeyondmlModelException(f"Model in the file is not {data['model_type']}")
+        else:
+            model = cls.create(data)
+            model.save(filename)
+        return model
+
+    @inited
     def save(self, filename):
-        with open(filename, 'w') as fl:
+        with open(filename, "w") as fl:
             json.dump({
-                'model_name': self._id,
-                'status': self._status,
-                'model_type': self._model_type,
+                "model_name": self._id,
+                "status": self._status,
+                "model_type": self._model_type,
             }, fl)
 
-    def _upload_fit(self, train_X, train_y, validate_X, validate_y):
-        self.status()
-        if self._status == 'Created':
+    @property
+    def is_inited(self) -> bool:
+        return self._id is not None
+
+    @property
+    @inited
+    def is_ready(self):
+        return self.status is BeyondmlModelStatus.READY
+
+    @property
+    @inited
+    def status(self) -> BeyondmlModelStatus:
+        status = self._update_status()
+        return BeyondmlModelStatus(status.lower())
+
+    @property
+    @inited
+    def type(self) -> BeyondmlModelType:
+        return BeyondmlModelType(self._model_type.lower())
+
+    @inited
+    def _update_status(self) -> str:
+        r = BeyondmlAPI.status(self._id)
+        self._status = status = r["status"]
+        return status
+
+    @inited
+    def fit(
+        self,
+        train_X: Union[list, Series, None],
+        train_y: Union[list, Series, None],
+        validate_X: Union[list, Series, None],
+        validate_y: Union[list, Series, None]
+    ) -> 'BeyondmlModel':
+        if self.status in {BeyondmlModelStatus.READY, BeyondmlModelStatus.TRAINING, BeyondmlModelStatus.TRAIN_REQUESTED}:
+            return self
+
+        if all(data is not None for data in [train_X, train_y, validate_X, validate_y]):
             self.upload(train_X, train_y, validate_X, validate_y)
 
-        if self._status == 'DatasetsLoaded':
-            self.fit()
+        if self.status is not BeyondmlModelStatus.DATASETS_LOADED:
+            raise BeyondmlModelException("Dataset is required")
+
+        BeyondmlAPI.fit(self._id)
+
         return self
 
+    @inited
+    def generate(self, input: str):
+        r = BeyondmlAPI.generate(self._id, input)
+        return r["answer"]["responses"][0]["response"]
 
-def load(filename):
-    with open(filename, 'r') as fl:
-        return BeyondmlModel(json.load(fl))
+    @inited
+    def classify(self, input: str):
+        r = BeyondmlAPI.classify(self._id, input)
+        return r["answer"]["scores"]
+
+    @inited
+    def wait_for_training_finish(self, sleep_for: int = 60):
+        while self.status is not BeyondmlModelStatus.READY:
+            sleep(sleep_for)
+
+    @inited
+    def upload(
+        self,
+        train_X: Union[list, Series],
+        train_y: Union[list, Series],
+        validate_X: Union[list, Series],
+        validate_y: Union[list, Series]
+    ) -> dict:
+        if any(len(data) < MINIMUM_ENTRIES for data in [
+            train_X, train_y, validate_X, validate_y
+        ]):
+            raise BeyondmlModelException(
+                f"Dataset must contain at least {MINIMUM_ENTRIES} elements")
+
+        data = {
+            "train_dataset": {
+                "inputs": train_X,
+            },
+            "validate_dataset": {
+                "inputs": validate_X,
+            }
+        }
+
+        key = {
+            BeyondmlModelType.GENERATOR: "outputs",
+            BeyondmlModelType.CLASSIFIER: "classes",
+        }[self.type]
+
+        data["train_dataset"][key] = train_y
+        data["validate_dataset"][key] = validate_y
+
+        def _default(val):
+            if isinstance(val, Series):
+                return val.tolist()
+
+            raise BeyondmlModel(
+                f"Value of type '{type(val)}' can not be serialized")
+
+        return BeyondmlAPI.upload(self._id, data=json.dumps(data, default=_default))
+
+    def __repr__(self) -> str:
+        return str(
+            {
+                "id": self._id,
+                "status": self._status,
+                "model_type": self._model_type
+            }
+        )
+
+    def __str__(self) -> str:
+        return str(
+            {
+                "id": self._id,
+                "status": self._model_type,
+                "model_type": self._model_type
+            }
+        )
 
 
-def _create(data):
-    headers = _get_auth_header()
-    headers['Content-Type'] = 'application/json'
-    r = requests.post(_models_api(), headers=headers, data=json.dumps(data))
-    if r.status_code != 200:
-        raise Exception(r.text)
-    return BeyondmlModel(r.json())
+def train_generator(
+    filename: str,
+    train_X: Union[list, Series, None],
+    train_y: Union[list, Series, None],
+    validate_X: Union[list, Series, None],
+    validate_y: Union[list, Series, None],
+    train_iters: int = None
+) -> BeyondmlModel:
+    model_params = {"model_type": "generator"}
 
-
-def _create_or_load(data: dict, filename: str = None):
-    if filename is not None and os.path.isfile(filename):
-        model = load(filename)
-        if model._model_type != data['model_type']:
-            raise Exception(
-                'Model in the file is not {}'.format(data['model_type']))
-        return model
-    m = _create(data)
-    m.save(filename)
-    return m
-
-def create_generator(filename: str = None, train_iters : int = None):
-    model = {'model_type': 'generator'}
     if train_iters:
-        model.update({'model_params': {'train_iters': train_iters}})
-    return _create_or_load(model, filename)
+        model_params["model_params"] = {"train_iters": train_iters}
 
-def create_classifier(filename: str = None, train_iters : int = None):
-    model = {'model_type': 'classifier'}
+    model = BeyondmlModel.load_or_create(filename, model_params)
+    model.fit(train_X, train_y, validate_X, validate_y)
+    return model
+
+
+def train_classifier(
+    filename: str,
+    train_X: Union[list, Series, None],
+    train_y: Union[list, Series, None],
+    validate_X: Union[list, Series, None],
+    validate_y: Union[list, Series, None],
+    train_iters: int = None
+) -> BeyondmlModel:
+    model_params = {"model_type": "classifier"}
+
     if train_iters:
-        model.update({'model_params': {'train_iters': train_iters}})
-    return _create_or_load(model, filename)
+        model_params["model_params"] = {"train_iters": train_iters}
 
-
-def models():
-    r = requests.get(_models_api(), headers=_get_auth_header())
-    if r.status_code != 200:
-        raise Exception(r.text)
-    res = r.json()
-    res = []
-    if 'models' in res:
-        for k in res['models']:
-            res.append(BeyondmlModel(k))
-    return res
-
-
-def get_model(id):
-    r = requests.get('{}/{}/status'.format(_models_api(), id),
-                     headers=_get_auth_header())
-    if r.status_code != 200:
-        raise Exception(r.text)
-    return BeyondmlModel(r.json())
-
-
-def train_generator(filename: str, train_X, train_y, validate_X, validate_y, train_iters : int = None):
-    model = create_generator(filename, train_iters)
-    return model._upload_fit(train_X, train_y, validate_X, validate_y)
-
-
-def train_classifier(filename: str, train_X, train_y, validate_X, validate_y, train_iters : int = None):
-    model = create_classifier(filename, train_iters)
-    return model._upload_fit(train_X, train_y, validate_X, validate_y)
+    model = BeyondmlModel.load_or_create(filename, model_params)
+    model.fit(train_X, train_y, validate_X, validate_y)
+    return model

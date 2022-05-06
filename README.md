@@ -21,24 +21,25 @@ To install the package just use `pip install model-one`.
 import model_one
 import pandas as pd
 
-model_one.cli.API_KEY = 'YOUR_API_KEY'
+model_one.set_api_key('YOUR_API_KEY')
 
-# get or create a model
-model = model_one.create_generator('filename.json')
-
+# load datasets
 tdf = pd.read_csv('train.csv')
 vdf = pd.read_csv('test.csv')
 
-# upload datasets 
-model.upload(tdf['inputs'], tdf['outputs'], vdf['inputs'], vdf['outputs'])
-model.fit()
+# Call one method. It will do everything for you:
+# create a model, save it to the file, upload datasets and put the model in the queue for training.
+model = model_one.train_generator('filename.json', tdf['inputs'], tdf['outputs'], vdf['inputs'], vdf['outputs'])
 
 # wait...
 # a few hours
 # while our GPUs train your model
-print(model.status())
-print(model.ready())
+model.wait_for_training_finish()
+
+print(model.status)
+print(model.is_ready)
 
 # inference!
-model.generate('The Answer to the Ultimate Question of Life, the Universe, and Everything')
+the_answer = model.generate('The Answer to the Ultimate Question of Life, the Universe, and Everything')
+print(the_answer)
 ```

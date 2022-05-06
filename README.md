@@ -29,7 +29,11 @@ vdf = pd.read_csv('test.csv')
 
 # Call one method. It will do everything for you:
 # create a model, save it to the file, upload datasets and put the model in the queue for training.
-model = model_one.train_generator('filename.json', tdf['inputs'], tdf['outputs'], vdf['inputs'], vdf['outputs'])
+model = model_one.train_generator(
+    'filename.json',
+    tdf['inputs'], tdf['outputs'],
+    vdf['inputs'], vdf['outputs']
+)
 
 # wait...
 # a few hours

@@ -118,11 +118,13 @@ class ModelOne():
     _id: str = None
     _status: str = None
     _model_type: str = None
+    _model_user_name: str = None
 
     def __init__(self, model_name: str, status: str, model_type: str, *args, **kwargs):
         self._id = model_name
         self._status = status
         self._model_type = model_type
+        self._model_user_name = kwargs["user_name"] if "user_name" in kwargs else None
 
     @classmethod
     def from_dict(cls, model: dict) -> 'ModelOne':
@@ -300,7 +302,8 @@ class ModelOne():
             {
                 "id": self._id,
                 "status": self._status,
-                "model_type": self._model_type
+                "model_type": self._model_type,
+                "user_name": self._model_user_name,
             }
         )
 
@@ -309,7 +312,8 @@ class ModelOne():
             {
                 "id": self._id,
                 "status": self._model_type,
-                "model_type": self._model_type
+                "model_type": self._model_type,
+                "user_name": self._model_user_name,
             }
         )
 

@@ -9,7 +9,7 @@ This package provides a simple wrapper for using our api.
 Using `model-one` package allows you to train and apply models.
 
 ## Just try
-We have fine-tuned several models. You can use the [notebook](playbook.ipynb) to try them out. You can [get the token](https://beyond.ml/model-one#rec435480002) to fine tune your own model.
+We have fine-tuned several models. You can use the [notebook](https://colab.research.google.com/github/beyondml/model-one-py/blob/main/playbook.ipynb) to try them out. You can [get the token](https://beyond.ml/model-one#rec435480002) to fine tune your own model.
 
 ## Get started
 

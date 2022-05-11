@@ -8,6 +8,9 @@ This package provides a simple wrapper for using our api.
 
 Using `model-one` package allows you to train and apply models.
 
+## Just try
+We have fine-tuned several models. You can use the [notebook](playbook.ipynb) to try them out. You can [get the token](https://beyond.ml/model-one#rec435480002) to fine tune your own model.
+
 ## Get started
 
 Firstly fill out the [form](https://beyond.ml/model-one#rec435480002) to get a key to access the API. We will send you the key within a day.

@@ -8,6 +8,7 @@ from time import sleep
 from typing import Optional, List, Union
 
 from pandas import Series
+from numpy import ndarray
 
 
 API_KEY = os.environ.get("BEYONDML_API_KEY")
@@ -289,7 +290,7 @@ class ModelOne():
         data["validate_dataset"][key] = validate_y
 
         def _default(val):
-            if isinstance(val, Series):
+            if isinstance(val, Series) or isinstance(val, ndarray):
                 return val.tolist()
 
             raise ModelOne(

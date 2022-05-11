@@ -34,6 +34,11 @@ class ModelOneAPI():
         "upload": ("POST", f"{API_URL}/v0/models/{{}}/upload"),
         "status": ("GET", f"{API_URL}/v0/models/{{}}/status"),
         "fit": ("POST", f"{API_URL}/v0/models/{{}}/fit"),
+        "bind": ("POST", f"{API_URL}/v0/models/{{}}/bind"),
+        "create_file": ("POST", f"{API_URL}/v0/files"),
+        "files": ("GET", f"{API_URL}/v0/files"),
+        "upload_file": ("POST", f"{API_URL}/v0/files/{{}}/upload"),
+        "file_status": ("GET", f"{API_URL}/v0/files/{{}}/status"),
     }
 
     @classmethod
@@ -76,6 +81,12 @@ class ModelOneAPI():
         method, url = cls.V0["upload"]
 
         return cls._request(method, url.format(id), data=data)
+        
+    @classmethod
+    def bind(cls, id: str, data: dict) -> dict:
+        method, url = cls.V0["bind"]
+
+        return cls._request(method, url.format(id), data=data)
 
     @classmethod
     def status(cls, id: str) -> dict:
@@ -89,6 +100,22 @@ class ModelOneAPI():
 
         return cls._request(method, url.format(id))
 
+    @classmethod
+    def create_file(cls, data: dict) -> dict:
+        return cls._request(*cls.V0["create_file"], data=json.dumps(data))
+        
+    @classmethod
+    def upload_file(cls, id: str, data: dict) -> dict:
+        method, url = cls.V0["upload_file"]
+
+        return cls._request(method, url.format(id), data=data)
+        
+    @classmethod
+    def file_status(cls, id: str) -> dict:
+        method, url = cls.V0["file_status"]
+
+        return cls._request(method, url.format(id))
+
 
 class ModelOneStatus(str, Enum):
     READY = "ready"
@@ -97,6 +124,15 @@ class ModelOneStatus(str, Enum):
     TRAIN_REQUESTED = "trainrequested"
     TRAINING = "readytofit"
     FAILED = "fitfailed"
+    
+
+class ModelOneFileStatus(str, Enum):
+    READY = "fileready"
+    CREATED = "filecreated"
+    INQUEUE = "fileinqueue"
+    LOADING = "fileloading"
+    LOADED = "fileloaded"
+    FAILED = "filefailed"
 
 
 class ModelOneType(str, Enum):
@@ -113,6 +149,158 @@ def inited(m: callable):
         return m(self, *args, **kwargs)
 
     return _wrapper
+
+
+class ModelOneFile():
+    _id: str = None
+    _status: str = None
+    _task_type: str = None
+    _file_name: str = None
+
+    def __init__(self, file_id: str, status: str, task_type: str, file_name: str, *args, **kwargs):
+        self._id = file_id
+        self._status = status
+        self._task_type = task_type
+        self._file_name = file_name
+
+    @classmethod
+    def from_dict(cls, model: dict) -> 'ModelOneFile':
+        return cls(**model)
+
+    @classmethod
+    def from_id(cls, id: str) -> 'ModelOneFile':
+        r = ModelOneAPI.file_status(id)
+        return cls.from_dict(r)
+
+    @classmethod
+    def create(cls, file_name: str, task_type : ModelOneType) -> 'ModelOneFile':
+        r = ModelOneAPI.create_file(
+            {"name": file_name, "task_type": task_type.value})
+        r["task_type"] = task_type.value
+        return cls.from_dict(r)
+
+    @classmethod
+    def load(cls, filename: str) -> 'ModelOneFile':
+        with open(filename, "r") as fl:
+            data = json.load(fl)
+            return cls.from_dict(data)
+
+    @classmethod
+    def load_or_create(cls, filename: str, file_name: str, task_type : ModelOneType) -> 'ModelOneFile':
+        if os.path.isfile(filename):
+            model = cls.load(filename)
+            if model.type != task_type:
+                raise ModelOneException(f"Model in the file is not {task_type}")
+        else:
+            model = cls.create(file_name, task_type)
+            model.save(filename)
+        return model
+
+    @inited
+    def save(self, filename):
+        with open(filename, "w") as fl:
+            json.dump({
+                "id": self._id,
+                "name": self._file_name,
+                "status": self._status,
+                "task_type": self._task_type,
+            }, fl)
+
+    @property
+    def is_inited(self) -> bool:
+        return self._id is not None
+
+    @property
+    @inited
+    def is_ready(self):
+        return self.status is ModelOneFileStatus.READY
+
+    @property
+    @inited
+    def status(self) -> ModelOneFileStatus:
+        status = self._update_status()
+        return ModelOneFileStatus(status.lower())
+
+    @property
+    @inited
+    def type(self) -> ModelOneType:
+        return ModelOneType(self._task_type.lower())
+        
+    @property
+    @inited
+    def id(self) -> str:
+        return self._id
+
+    @inited
+    def _update_status(self) -> str:
+        r = ModelOneAPI.file_status(self._id)
+        self._status = status = r["status"]
+        return status
+
+    @inited
+    def wait_for_uploading_finish(self, sleep_for: int = 1):
+        while self.status is not ModelOneFileStatus.READY:
+            sleep(sleep_for)
+
+    @inited
+    def upload(
+        self,
+        X: Union[list, Series, ndarray],
+        y: Union[list, Series, ndarray]
+    ) -> dict:
+        if any(len(data) < MINIMUM_ENTRIES for data in [
+            X, y
+        ]):
+            raise ModelOneException(
+                f"Dataset must contain at least {MINIMUM_ENTRIES} elements")
+
+        data = {
+            "inputs": X,
+        }
+
+        key = {
+            ModelOneType.GENERATOR: "outputs",
+            ModelOneType.CLASSIFIER: "classes",
+        }[self.type]
+
+        data[key] = y
+
+        def _default(val):
+            if isinstance(val, Series) or isinstance(val, ndarray):
+                return val.tolist()
+
+            raise ModelOne(
+                f"Value of type '{type(val)}' can not be serialized")
+
+        return ModelOneAPI.upload_file(self._id, data=json.dumps(data, default=_default))
+    
+    @classmethod
+    def files(cls) -> List['ModelOne']:
+        r = ModelOneAPI.files()
+
+        return [
+            cls.from_dict(data) for data in r.get("files", [])
+        ]
+
+    def __repr__(self) -> str:
+        return str(
+            {
+                "id": self._id,
+                "status": self._status,
+                "task_type": self._task_type,
+                "name": self._file_name,
+            }
+        )
+
+    def __str__(self) -> str:
+        return str(
+            {
+                "id": self._id,
+                "status": self._status,
+                "task_type": self._task_type,
+                "name": self._file_name,
+            }
+        )
 
 
 class ModelOne():
@@ -259,6 +447,12 @@ class ModelOne():
             sleep(sleep_for)
 
     @inited
+    def bind(self, train_file: ModelOneFile, validate_file: ModelOneFile) -> 'ModelOne':
+        ModelOneAPI.bind(self._id, data={"train_file": train_file.id, "validate_file": validate_file.id})
+        self._update_status()
+        return self
+
+    @inited
     def upload(
         self,
         train_X: Union[list, Series],
@@ -312,7 +506,7 @@ class ModelOne():
         return str(
             {
                 "id": self._id,
-                "status": self._model_type,
+                "status": self._status,
                 "model_type": self._model_type,
                 "user_name": self._model_user_name,
             }

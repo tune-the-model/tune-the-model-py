@@ -4,6 +4,8 @@ from model_one.cli import (
     ModelOneType,
     ModelOne,
     ModelOneAPI,
+    ModelOneFile,
+    ModelOneFileStatus,
     set_api_key,
     API_URL,
     train_generator,
@@ -19,6 +21,8 @@ __all__ = [
     "ModelOneType",
     "ModelOne",
     "ModelOneAPI",
+    "ModelOneFile",
+    "ModelOneFileStatus",
     "train_generator",
     "train_classifier",
 ]

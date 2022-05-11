@@ -139,11 +139,13 @@ class ModelOne():
         return cls.from_dict(r)
 
     @classmethod
-    def create_classifier(cls, filename: str, train_iters: int = None):
+    def create_classifier(cls, filename: str, train_iters: int = None, num_classes: int = None):
         model = {"model_type": "classifier"}
 
         if train_iters:
             model["model_params"] = {"train_iters": train_iters}
+        if num_classes:
+            model["model_params"] = {"num_classes": num_classes}
 
         return cls.load_or_create(filename, model)
 
@@ -331,8 +333,9 @@ def train_classifier(
     train_y: Union[list, Series, None],
     validate_X: Union[list, Series, None],
     validate_y: Union[list, Series, None],
-    train_iters: int = None
+    train_iters: int = None,
+    num_classes: int = None
 ) -> ModelOne:
-    model = ModelOne.create_classifier(filename, train_iters)
+    model = ModelOne.create_classifier(filename, train_iters, num_classes)
     model.fit(train_X, train_y, validate_X, validate_y)
     return model

@@ -116,6 +116,10 @@ class ModelOneAPI():
 
         return cls._request(method, url.format(id))
 
+    @classmethod
+    def files(cls) -> dict:
+        return cls._request(*cls.V0["files"])
+
 
 class ModelOneStatus(str, Enum):
     READY = "ready"
@@ -176,7 +180,6 @@ class ModelOneFile():
     def create(cls, file_name: str, task_type : ModelOneType) -> 'ModelOneFile':
         r = ModelOneAPI.create_file(
             {"name": file_name, "task_type": task_type.value})
-        r["task_type"] = task_type.value
         return cls.from_dict(r)
 
     @classmethod

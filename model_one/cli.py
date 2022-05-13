@@ -35,10 +35,12 @@ class ModelOneAPI():
         "status": ("GET", f"{API_URL}/v0/models/{{}}/status"),
         "fit": ("POST", f"{API_URL}/v0/models/{{}}/fit"),
         "bind": ("POST", f"{API_URL}/v0/models/{{}}/bind"),
+        "delete_model": ("DELETE", f"{API_URL}/v0/models/{{}}/delete"),
         "create_file": ("POST", f"{API_URL}/v0/files"),
         "files": ("GET", f"{API_URL}/v0/files"),
         "upload_file": ("POST", f"{API_URL}/v0/files/{{}}/upload"),
         "file_status": ("GET", f"{API_URL}/v0/files/{{}}/status"),
+        "delete_file": ("DELETE", f"{API_URL}/v0/files/{{}}/delete"),
     }
 
     @classmethod
@@ -81,7 +83,7 @@ class ModelOneAPI():
         method, url = cls.V0["upload"]
 
         return cls._request(method, url.format(id), data=data)
-        
+
     @classmethod
     def bind(cls, id: str, data: dict) -> dict:
         method, url = cls.V0["bind"]
@@ -103,13 +105,21 @@ class ModelOneAPI():
     @classmethod
     def create_file(cls, data: dict) -> dict:
         return cls._request(*cls.V0["create_file"], data=json.dumps(data))
-        
+
     @classmethod
     def upload_file(cls, id: str, data: dict) -> dict:
         method, url = cls.V0["upload_file"]
 
         return cls._request(method, url.format(id), data=data)
-        
+
+    @classmethod
+    def delete_model(cls) -> dict:
+        return cls._request(*cls.V0["delete_model"])
+
+    @classmethod
+    def delete_file(cls) -> dict:
+        return cls._request(*cls.V0["delete_file"])
+
     @classmethod
     def file_status(cls, id: str) -> dict:
         method, url = cls.V0["file_status"]
@@ -128,7 +138,7 @@ class ModelOneStatus(str, Enum):
     TRAIN_REQUESTED = "trainrequested"
     TRAINING = "readytofit"
     FAILED = "fitfailed"
-    
+
 
 class ModelOneFileStatus(str, Enum):
     READY = "fileready"
@@ -177,7 +187,7 @@ class ModelOneFile():
         return cls.from_dict(r)
 
     @classmethod
-    def create(cls, file_name: str, task_type : ModelOneType) -> 'ModelOneFile':
+    def create(cls, file_name: str, task_type: ModelOneType) -> 'ModelOneFile':
         r = ModelOneAPI.create_file(
             {"name": file_name, "task_type": task_type.value})
         return cls.from_dict(r)
@@ -189,11 +199,12 @@ class ModelOneFile():
             return cls.from_dict(data)
 
     @classmethod
-    def load_or_create(cls, filename: str, file_name: str, task_type : ModelOneType) -> 'ModelOneFile':
+    def load_or_create(cls, filename: str, file_name: str, task_type: ModelOneType) -> 'ModelOneFile':
         if os.path.isfile(filename):
             model = cls.load(filename)
             if model.type != task_type:
-                raise ModelOneException(f"Model in the file is not {task_type}")
+                raise ModelOneException(
+                    f"Model in the file is not {task_type}")
         else:
             model = cls.create(file_name, task_type)
             model.save(filename)
@@ -228,7 +239,7 @@ class ModelOneFile():
     @inited
     def type(self) -> ModelOneType:
         return ModelOneType(self._task_type.lower())
-        
+
     @property
     @inited
     def id(self) -> str:
@@ -239,6 +250,11 @@ class ModelOneFile():
         r = ModelOneAPI.file_status(self._id)
         self._status = status = r["status"]
         return status
+
+    @inited
+    def delete(self) -> str:
+        r = ModelOneAPI.delete_file(self._id)
+        return r
 
     @inited
     def wait_for_uploading_finish(self, sleep_for: int = 1):
@@ -276,7 +292,7 @@ class ModelOneFile():
                 f"Value of type '{type(val)}' can not be serialized")
 
         return ModelOneAPI.upload_file(self._id, data=json.dumps(data, default=_default))
-    
+
     @classmethod
     def files(cls) -> List['ModelOne']:
         r = ModelOneAPI.files()
@@ -414,6 +430,11 @@ class ModelOne():
         return status
 
     @inited
+    def delete(self) -> str:
+        r = ModelOneAPI.delete_model(self._id)
+        return r
+
+    @inited
     def fit(
         self,
         train_X: Union[list, Series, ndarray, None] = None,
@@ -463,7 +484,8 @@ class ModelOne():
 
     @inited
     def bind(self, train_file: ModelOneFile, validate_file: ModelOneFile) -> 'ModelOne':
-        ModelOneAPI.bind(self._id, data={"train_file": train_file.id, "validate_file": validate_file.id})
+        ModelOneAPI.bind(self._id, data={
+                         "train_file": train_file.id, "validate_file": validate_file.id})
         self._update_status()
         return self
 

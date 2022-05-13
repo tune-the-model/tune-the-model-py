@@ -180,7 +180,8 @@ class ModelOne():
         if os.path.isfile(filename):
             model = cls.load(filename)
             if model.type != data["model_type"]:
-                raise ModelOneException(f"Model in the file is not {data['model_type']}")
+                raise ModelOneException(
+                    f"Model in the file is not {data['model_type']}")
         else:
             model = cls.create(data)
             model.save(filename)
@@ -224,15 +225,26 @@ class ModelOne():
     @inited
     def fit(
         self,
-        train_X: Union[list, Series, None] = None,
-        train_y: Union[list, Series, None] = None,
-        validate_X: Union[list, Series, None] = None,
-        validate_y: Union[list, Series, None] = None
+        train_X: Union[list, Series, ndarray, None] = None,
+        train_y: Union[list, Series, ndarray, None] = None,
+        validate_X: Union[list, Series, ndarray, None] = None,
+        validate_y: Union[list, Series, ndarray, None] = None,
+        X: Union[list, Series, ndarray, None] = None,
+        y: Union[list, Series, ndarray, None] = None,
+        test_size=None,
+        train_size=None,
+        shuffle=True,
+        random_state=None
     ) -> 'ModelOne':
         if self.status in {ModelOneStatus.READY, ModelOneStatus.TRAINING, ModelOneStatus.TRAIN_REQUESTED}:
             return self
 
         if all(data is not None for data in [train_X, train_y, validate_X, validate_y]):
+            self.upload(train_X, train_y, validate_X, validate_y)
+        elif all(data is not None for data in [X, y]):
+            from sklearn.model_selection import train_test_split
+            train_X, validate_X, train_y, validate_y = train_test_split(
+                X, y, train_size=train_size, test_size=test_size, random_state=random_state, shuffle=shuffle)
             self.upload(train_X, train_y, validate_X, validate_y)
 
         if self.status is not ModelOneStatus.DATASETS_LOADED:
@@ -261,10 +273,10 @@ class ModelOne():
     @inited
     def upload(
         self,
-        train_X: Union[list, Series],
-        train_y: Union[list, Series],
-        validate_X: Union[list, Series],
-        validate_y: Union[list, Series]
+        train_X: Union[list, Series, ndarray],
+        train_y: Union[list, Series, ndarray],
+        validate_X: Union[list, Series, ndarray],
+        validate_y: Union[list, Series, ndarray]
     ) -> dict:
         if any(len(data) < MINIMUM_ENTRIES for data in [
             train_X, train_y, validate_X, validate_y
@@ -321,26 +333,40 @@ class ModelOne():
 
 def train_generator(
     filename: str,
-    train_X: Union[list, Series, None],
-    train_y: Union[list, Series, None],
-    validate_X: Union[list, Series, None],
-    validate_y: Union[list, Series, None],
-    train_iters: int = None
+    train_X: Union[list, Series, ndarray, None] = None,
+    train_y: Union[list, Series, ndarray, None] = None,
+    validate_X: Union[list, Series, ndarray, None] = None,
+    validate_y: Union[list, Series, ndarray, None] = None,
+    train_iters: int = None,
+    X: Union[list, Series, ndarray, None] = None,
+    y: Union[list, Series, ndarray, None] = None,
+    test_size=None,
+    train_size=None,
+    shuffle=True,
+    random_state=None
 ) -> ModelOne:
     model = ModelOne.create_generator(filename, train_iters)
-    model.fit(train_X, train_y, validate_X, validate_y)
+    model.fit(train_X, train_y, validate_X, validate_y, X, y,
+              test_size, train_size, shuffle, random_state)
     return model
 
 
 def train_classifier(
     filename: str,
-    train_X: Union[list, Series, None],
-    train_y: Union[list, Series, None],
-    validate_X: Union[list, Series, None],
-    validate_y: Union[list, Series, None],
+    train_X: Union[list, Series, ndarray, None] = None,
+    train_y: Union[list, Series, ndarray, None] = None,
+    validate_X: Union[list, Series, ndarray, None] = None,
+    validate_y: Union[list, Series, ndarray, None] = None,
     train_iters: int = None,
-    num_classes: int = None
+    num_classes: int = None,
+    X: Union[list, Series, ndarray, None] = None,
+    y: Union[list, Series, ndarray, None] = None,
+    test_size=None,
+    train_size=None,
+    shuffle=True,
+    random_state=None
 ) -> ModelOne:
     model = ModelOne.create_classifier(filename, train_iters, num_classes)
-    model.fit(train_X, train_y, validate_X, validate_y)
+    model.fit(train_X, train_y, validate_X, validate_y, X, y,
+              test_size, train_size, shuffle, random_state)
     return model

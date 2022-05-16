@@ -113,12 +113,16 @@ class ModelOneAPI():
         return cls._request(method, url.format(id), data=data)
 
     @classmethod
-    def delete_model(cls) -> dict:
-        return cls._request(*cls.V0["delete_model"])
+    def delete_model(cls, id: str) -> dict:
+        method, url = cls.V0["delete_model"]
+
+        return cls._request(method, url.format(id))
 
     @classmethod
-    def delete_file(cls) -> dict:
-        return cls._request(*cls.V0["delete_file"])
+    def delete_file(cls, id: str) -> dict:
+        method, url = cls.V0["delete_model"]
+
+        return cls._request(method, url.format(id))
 
     @classmethod
     def file_status(cls, id: str) -> dict:

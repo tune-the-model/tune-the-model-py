@@ -140,8 +140,10 @@ class ModelOneStatus(str, Enum):
     CREATED = "created"
     DATASETS_LOADED = "datasetsloaded"
     TRAIN_REQUESTED = "trainrequested"
-    TRAINING = "readytofit"
+    TRAINING = "training"
     FAILED = "fitfailed"
+    READY_TO_FIT = "readytofit"
+    INQUEUE = "inqueue"
 
 
 class ModelOneFileStatus(str, Enum):

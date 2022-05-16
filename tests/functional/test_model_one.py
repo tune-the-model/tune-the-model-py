@@ -9,7 +9,7 @@ import model_one
 
 @pytest.fixture(scope='session')
 def configured_model_one():
-    model_one.cli.API_KEY = os.environ.get("MODEL_ONE_KEY")
+    model_one.set_api_key(os.environ.get("MODEL_ONE_KEY"))
 
 
 @pytest.fixture

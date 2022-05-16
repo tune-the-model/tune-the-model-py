@@ -36,5 +36,6 @@ def test_train_classifier(classifier):
     assert classifier.status in {
         model_one.ModelOneStatus.READY, 
         model_one.ModelOneStatus.TRAINING, 
-        model_one.ModelOneStatus.TRAIN_REQUESTED
+        model_one.ModelOneStatus.TRAIN_REQUESTED,
+        model_one.ModelOneStatus.INQUEUE
     }

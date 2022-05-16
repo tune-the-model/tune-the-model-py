@@ -120,7 +120,7 @@ class ModelOneAPI():
 
     @classmethod
     def delete_file(cls, id: str) -> dict:
-        method, url = cls.V0["delete_model"]
+        method, url = cls.V0["delete_file"]
 
         return cls._request(method, url.format(id))
 

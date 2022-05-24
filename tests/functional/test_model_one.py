@@ -23,7 +23,7 @@ def classifier(configured_model_one, tmpdir_factory, dataset):
     validation = pd.DataFrame(dataset['validation'])
 
     model = model_one.train_classifier(
-        tmpdir_factory.mktemp("models").join("model-one-tweet_eval-irony.json"),
+        tmpdir_factory.mktemp("models").join("classifier.json"),
         train['text'], 
         train['label'], 
         validation['text'], 
@@ -62,3 +62,46 @@ def test_trained_classifier(trained_classifier, dataset):
         res_validation += trained_classifier.classify(input=text)
 
     assert len(res_validation) > 0
+
+
+@pytest.fixture(scope="module")
+def generator(configured_model_one, tmpdir_factory, dataset):
+    train_inputs = ["алый", "альбом"] * 32
+    train_outputs = ["escarlata", "el álbum"] * 32
+    validation_inputs = ["бассейн", "бахрома"] * 32
+    validation_outputs = ["libre", "flecos"] * 32
+
+    model = model_one.train_generator(
+        tmpdir_factory.mktemp("models").join("generator.json"),
+        train_inputs,
+        train_outputs,
+        validation_inputs,
+        validation_outputs,
+        train_iters=10
+    )
+
+    yield model
+
+    model.delete()
+
+
+def test_generator(generator):
+    assert generator.status in {
+        model_one.ModelOneStatus.READY,
+        model_one.ModelOneStatus.TRAINING,
+        model_one.ModelOneStatus.TRAIN_REQUESTED,
+        model_one.ModelOneStatus.INQUEUE
+    }
+
+
+@pytest.fixture(scope="module")
+def trained_generator(generator):
+    generator.wait_for_training_finish()
+
+    yield generator
+
+
+def test_trained_generator(trained_generator):
+    assert trained_generator.status == model_one.ModelOneStatus.READY
+
+    assert len(trained_generator.generate("бассейн")) > 0

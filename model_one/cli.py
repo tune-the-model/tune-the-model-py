@@ -475,11 +475,33 @@ class ModelOne():
 
     @inited
     def generate(self, input: str):
+        """Generates a suffix based on an input prefix.
+
+        Args:
+            input : Prefix for generating a suffix.
+
+        Returns:
+            Generated text.
+
+        Raises:
+            ModelOneException: If anything bad happens.
+        """
         r = ModelOneAPI.generate(self._id, input)
         return r["answer"]["responses"][0]["response"]
 
     @inited
     def classify(self, input: str):
+        """Predicts a probability distribution over a set of classes given an input.
+
+        Args:
+            input : String to classify.
+
+        Returns:
+            A probability distribution over a set of classes.
+
+        Raises:
+            ModelOneException: If anything bad happens.
+        """
         r = ModelOneAPI.classify(self._id, input)
         return r["answer"]["scores"]
 
@@ -570,6 +592,61 @@ def train_generator(
     shuffle=True,
     random_state=None
 ) -> ModelOne:
+    """Train the generator according to the given training data.
+
+    Examples:
+        The following snippet shows how to train a generator using the splitted train and validation data sets.
+
+    .. code-block:: python
+
+        import model_one
+
+
+        train_inputs = ["алый", "альбом"] * 32
+        train_outputs = ["escarlata", "el álbum"] * 32
+        validation_inputs = ["бассейн", "бахрома"] * 32
+        validation_outputs = ["libre", "flecos"] * 32
+
+        model = model_one.train_generator(
+            "classifier.json",
+            train_inputs,
+            train_outputs,
+            validation_inputs,
+            validation_outputs,
+        )
+
+    Args:
+        filename : The path to a local file used to save the model info.
+        train_X : Training data.
+        train_y : Target class labels.
+        validate_X : Validation data set used for controlling the training quality.
+          The poor quality of this data set may lead to over-fitting.
+        validate_y : Validation class labels.
+        train_iters : Controls the number of train iterations.
+        X : Training and validation data sets in one. It will be spltted with
+          the help of sklearn.model_selection.train_test_split for you before
+          uploading.
+        y : Class labels.
+        test_size : If float, should be between 0.0 and 1.0 and represent the
+          proportion of the dataset to include in the validation split. If int,
+          represents the absolute number of validation samples. If None, the value is
+          set to the complement of the train size. If train_size is also None, it
+          will be set to 0.25.
+        train_size : If float, should be between 0.0 and 1.0 and represent the
+          proportion of the dataset to include in the train split. If int,
+          represents the absolute number of train samples. If None, the value is
+          automatically set to the complement of the test size.
+        shuffle : Whether or not to shuffle the data before splitting.
+        random_state : Controls the shuffling applied to the data before
+          applying the split. Pass an int for reproducible output across multiple
+          function calls.
+
+    Returns:
+        The model object.
+
+    Raises:
+        ModelOneException: If anything bad happens.
+    """
     model = ModelOne.create_generator(filename, train_iters)
     model.fit(train_X, train_y, validate_X, validate_y, X, y,
               test_size, train_size, shuffle, random_state)
@@ -591,6 +668,64 @@ def train_classifier(
     shuffle=True,
     random_state=None
 ) -> ModelOne:
+    """Train the classifier according to the given training data.
+
+    Examples:
+        The following snippet shows how to train a classifier using the splitted train and validation data sets.
+
+    .. code-block:: python
+
+        from datasets import load_dataset
+
+        import model_one
+
+
+        dataset = load_dataset("tweet_eval", "irony")
+
+        train = pd.DataFrame(dataset["train"])
+        validation = pd.DataFrame(dataset["validation"])
+
+        model = model_one.train_classifier(
+            "classifier.json",
+            train["text"],
+            train["label"],
+            validation["text"],
+            validation["label"],
+        )
+
+    Args:
+        filename : The path to a local file used to save the model info.
+        train_X : Training data.
+        train_y : Target class labels.
+        validate_X : Validation data set used for controlling the training quality.
+          The poor quality of this data set may lead to over-fitting.
+        validate_y : Validation class labels.
+        train_iters : Controls the number of train iterations.
+        num_classes : Creates a model for a multiclass classification task with <number of classes> classes.
+        X : Training and validation data sets in one. It will be spltted with
+          the help of sklearn.model_selection.train_test_split for you before
+          uploading.
+        y : Class labels.
+        test_size : If float, should be between 0.0 and 1.0 and represent the
+          proportion of the dataset to include in the validation split. If int,
+          represents the absolute number of validation samples. If None, the value is
+          set to the complement of the train size. If train_size is also None, it
+          will be set to 0.25.
+        train_size : If float, should be between 0.0 and 1.0 and represent the
+          proportion of the dataset to include in the train split. If int,
+          represents the absolute number of train samples. If None, the value is
+          automatically set to the complement of the test size.
+        shuffle : Whether or not to shuffle the data before splitting.
+        random_state : Controls the shuffling applied to the data before
+          applying the split. Pass an int for reproducible output across multiple
+          function calls.
+
+    Returns:
+        The model object.
+
+    Raises:
+        ModelOneException: If anything bad happens.
+    """
     model = ModelOne.create_classifier(filename, train_iters, num_classes)
     model.fit(train_X, train_y, validate_X, validate_y, X, y,
               test_size, train_size, shuffle, random_state)

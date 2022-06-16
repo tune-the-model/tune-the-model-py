@@ -13,6 +13,8 @@ permissions:
 jobs:
   build:
 
+    environment: Env
+
     runs-on: ubuntu-latest
 
     steps:

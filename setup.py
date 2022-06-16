@@ -3,6 +3,9 @@ from setuptools import setup, find_packages
 with open('README.md') as readme_file:
     README = readme_file.read()
 
+with open('requirements.txt') as f:
+    requirements = f.read().splitlines()
+
 setup_args = dict(
     name='model_one',
     version='0.1.12',
@@ -20,10 +23,5 @@ setup_args = dict(
 
 python_requires = ">=3.7, <4"
 
-install_requires = [
-    'pandas>1.4',
-    'requests>2.10',
-]
-
 if __name__ == '__main__':
-    setup(**setup_args, install_requires=install_requires)
+    setup(**setup_args, install_requires=requirements)

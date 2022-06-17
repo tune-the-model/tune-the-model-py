@@ -38,11 +38,31 @@ def classifier(configured_model_one, tmpdir_factory, dataset):
 
 def test_train_classifier(classifier):
     assert classifier.status in {
-        model_one.ModelOneStatus.READY, 
-        model_one.ModelOneStatus.TRAINING, 
+        model_one.ModelOneStatus.READY,
+        model_one.ModelOneStatus.TRAINING,
         model_one.ModelOneStatus.TRAIN_REQUESTED,
         model_one.ModelOneStatus.INQUEUE
     }
+
+
+def test_train_classifier_with_large_dataset(configured_model_one, tmpdir_factory, dataset):
+    data = pd.DataFrame(dataset["train"])
+
+    data = pd.concat([data] * 10)
+
+    model = model_one.ModelOne.create_classifier(
+        tmpdir_factory.mktemp("models").join("classifier-with-large-dataset.json"),
+        train_iters=10,
+    )
+
+    with pytest.raises(model_one.ModelOneException) as exc:
+        model.fit(
+            X=data["text"],
+            y=data["label"],
+        )
+    assert "Payload exceeds the limit" in str(exc.value)
+
+    model.delete()
 
 
 @pytest.fixture(scope="module")

@@ -552,10 +552,21 @@ class ModelOne():
             if isinstance(val, Series) or isinstance(val, ndarray):
                 return val.tolist()
 
-            raise ModelOne(
+            raise ModelOneException(
                 f"Value of type '{type(val)}' can not be serialized")
 
-        return ModelOneAPI.upload(self._id, data=json.dumps(data, default=_default))
+        data = json.dumps(data, default=_default)
+
+        def MB(i):
+            return i / 1024 ** 2
+
+        upper_limit = 1.5 * 1024 ** 2
+        if len(data) > upper_limit:
+            raise ModelOneException(
+                f"Payload exceeds the limit {upper_limit:0.2f}MB with size of {MB(len(data)):0.2f}MB"
+            )
+
+        return ModelOneAPI.upload(self._id, data=data)
 
     def __repr__(self) -> str:
         return str(

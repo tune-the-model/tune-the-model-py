@@ -1,8 +1,9 @@
 import os
 
-import pytest
-import pandas as pd
 from datasets import load_dataset
+import pandas as pd
+import pytest
+import requests
 
 import model_one
 
@@ -34,6 +35,12 @@ def classifier(configured_model_one, tmpdir_factory, dataset):
     yield model
 
     model.delete()
+
+
+def test_custom_url():
+    model_one.ModelOneAPI.API_URL = "https://localhost:123"
+    with pytest.raises(requests.exceptions.ConnectionError) as e:
+        model_one.ModelOneAPI.models()
 
 
 def test_train_classifier(classifier):

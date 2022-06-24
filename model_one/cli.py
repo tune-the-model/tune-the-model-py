@@ -5,7 +5,7 @@ import requests
 from enum import Enum
 from functools import wraps
 from time import sleep
-from typing import Optional, List, Union
+from typing import Optional, List, Tuple, Union
 
 from pandas import Series
 from numpy import ndarray
@@ -26,26 +26,34 @@ class ModelOneException(RuntimeError):
 
 
 class ModelOneAPI():
+    API_URL: Optional[str] = None
+
     V0: dict = {
-        "create": ("POST", f"{API_URL}/v0/models"),
-        "models": ("GET", f"{API_URL}/v0/models"),
-        "generate": ("GET", f"{API_URL}/v0/models/{{}}/generate"),
-        "classify": ("GET", f"{API_URL}/v0/models/{{}}/classify"),
-        "upload": ("POST", f"{API_URL}/v0/models/{{}}/upload"),
-        "status": ("GET", f"{API_URL}/v0/models/{{}}/status"),
-        "fit": ("POST", f"{API_URL}/v0/models/{{}}/fit"),
-        "bind": ("POST", f"{API_URL}/v0/models/{{}}/bind"),
-        "delete_model": ("DELETE", f"{API_URL}/v0/models/{{}}/delete"),
-        "create_file": ("POST", f"{API_URL}/v0/files"),
-        "files": ("GET", f"{API_URL}/v0/files"),
-        "upload_file": ("POST", f"{API_URL}/v0/files/{{}}/upload"),
-        "file_status": ("GET", f"{API_URL}/v0/files/{{}}/status"),
-        "delete_file": ("DELETE", f"{API_URL}/v0/files/{{}}/delete"),
+        "create": ("POST", "{}/v0/models"),
+        "models": ("GET", "{}/v0/models"),
+        "generate": ("GET", "{}/v0/models/{}/generate"),
+        "classify": ("GET", "{}/v0/models/{}/classify"),
+        "upload": ("POST", "{}/v0/models/{}/upload"),
+        "status": ("GET", "{}/v0/models/{}/status"),
+        "fit": ("POST", "{}/v0/models/{}/fit"),
+        "bind": ("POST", "{}/v0/models/{}/bind"),
+        "delete_model": ("DELETE", "{}/v0/models/{}/delete"),
+        "create_file": ("POST", "{}/v0/files"),
+        "files": ("GET", "{}/v0/files"),
+        "upload_file": ("POST", "{}/v0/files/{}/upload"),
+        "file_status": ("GET", "{}/v0/files/{}/status"),
+        "delete_file": ("DELETE", "{}/v0/files/{}/delete"),
     }
 
     @classmethod
+    def _get_V0(cls, method: str, *args, **kwargs) -> Tuple[str, str]:
+        method, url = cls.V0[method]
+
+        return method, url.format(cls.API_URL or API_URL, *args, **kwargs)
+
+    @classmethod
     def _request(cls, method: str, url: str, params: Optional[dict] = None, data: Optional[dict] = None) -> dict:
-        headers = {"Authorization": API_KEY, }
+        headers = {"Authorization": API_KEY}
 
         if data is not None:
             headers["Content-Type"] = "application/json"
@@ -60,79 +68,59 @@ class ModelOneAPI():
 
     @classmethod
     def create(cls, data: dict) -> dict:
-        return cls._request(*cls.V0["create"], data=json.dumps(data))
+        return cls._request(*cls._get_V0("create"), data=json.dumps(data))
 
     @classmethod
     def models(cls) -> dict:
-        return cls._request(*cls.V0["models"])
+        return cls._request(*cls._get_V0("models"))
 
     @classmethod
     def classify(cls, id: str, input: str) -> dict:
-        method, url = cls.V0["classify"]
-
-        return cls._request(method, url.format(id), params={"input": input})
+        return cls._request(*cls._get_V0("classify", id), params={"input": input})
 
     @classmethod
     def generate(cls, id: str, input: str) -> dict:
-        method, url = cls.V0["generate"]
-
-        return cls._request(method, url.format(id), params={"input": input})
+        return cls._request(*cls._get_V0("generate", id), params={"input": input})
 
     @classmethod
     def upload(cls, id: str, data: dict) -> dict:
-        method, url = cls.V0["upload"]
-
-        return cls._request(method, url.format(id), data=data)
+        return cls._request(*cls._get_V0("upload", id), data=data)
 
     @classmethod
     def bind(cls, id: str, data: dict) -> dict:
-        method, url = cls.V0["bind"]
-
-        return cls._request(method, url.format(id), data=data)
+        return cls._request(*cls._get_V0("bind", id), data=data)
 
     @classmethod
     def status(cls, id: str) -> dict:
-        method, url = cls.V0["status"]
-
-        return cls._request(method, url.format(id))
+        return cls._request(*cls._get_V0("status", id))
 
     @classmethod
     def fit(cls, id: str) -> dict:
-        method, url = cls.V0["fit"]
-
-        return cls._request(method, url.format(id))
+        return cls._request(*cls._get_V0("fit", id))
 
     @classmethod
     def create_file(cls, data: dict) -> dict:
-        return cls._request(*cls.V0["create_file"], data=json.dumps(data))
+        return cls._request(*cls._get_V0("create_file"), data=json.dumps(data))
 
     @classmethod
     def upload_file(cls, id: str, data: dict) -> dict:
-        method, url = cls.V0["upload_file"]
-
-        return cls._request(method, url.format(id), data=data)
+        return cls._request(*cls._get_V0("upload_file", id), data=data)
 
     @classmethod
     def delete_model(cls, id: str) -> dict:
-        method, url = cls.V0["delete_model"]
-
-        return cls._request(method, url.format(id))
+        return cls._request(*cls._get_V0("delete_model", id))
 
     @classmethod
     def delete_file(cls, id: str) -> dict:
-        method, url = cls.V0["delete_file"]
-
-        return cls._request(method, url.format(id))
+        return cls._request(*cls._get_V0("delete_file", id))
 
     @classmethod
     def file_status(cls, id: str) -> dict:
-        method, url = cls.V0["file_status"]
-
-        return cls._request(method, url.format(id))
+        return cls._request(*cls._get_V0("file_status", id))
 
     @classmethod
     def files(cls) -> dict:
-        return cls._request(*cls.V0["files"])
+        return cls._request(*cls._get_V0("files"))
 
 
 class ModelOneStatus(str, Enum):

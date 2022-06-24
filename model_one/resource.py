@@ -54,7 +54,7 @@ class ModelOneAPI():
         retry_strategy = requests.packages.urllib3.util.retry.Retry(
             total=3,
             backoff_factor=1,
-            status_forcelist=[500, 502, 503, 504],
+            status_forcelist=[429, 500, 502, 503, 504],
             method_whitelist=["HEAD", "GET", "PUT", "DELETE", "POST", "OPTIONS", "TRACE"]
         )
         adapter = requests.adapters.HTTPAdapter(max_retries=retry_strategy)
@@ -100,7 +100,7 @@ class ModelOneAPI():
 
     @classmethod
     def bind(cls, id: str, data: dict) -> dict:
-        return cls._request(*cls._get_V0("bind", id), data=data)
+        return cls._request(*cls._get_V0("bind", id), data=json.dumps(data))
 
     @classmethod
     def status(cls, id: str) -> dict:

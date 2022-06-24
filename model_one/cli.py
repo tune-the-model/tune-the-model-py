@@ -341,13 +341,22 @@ class ModelOne():
         if self.status in {ModelOneStatus.READY, ModelOneStatus.TRAINING, ModelOneStatus.TRAIN_REQUESTED}:
             return self
 
-        if all(data is not None for data in [train_X, train_y, validate_X, validate_y]):
-            self.upload(train_X, train_y, validate_X, validate_y)
-        elif all(data is not None for data in [X, y]):
+        if all(data is not None for data in [X, y]):
             from sklearn.model_selection import train_test_split
             train_X, validate_X, train_y, validate_y = train_test_split(
-                X, y, train_size=train_size, test_size=test_size, random_state=random_state, shuffle=shuffle)
-            self.upload(train_X, train_y, validate_X, validate_y)
+                X, y, train_size=train_size, test_size=test_size,
+                random_state=random_state, shuffle=shuffle
+            )
+
+        train_file = ModelOneFile.create("train", self.type)
+        train_file.upload(train_X, train_y)
+        train_file.wait_for_uploading_finish()
+
+        validate_file = ModelOneFile.create("val", self.type)
+        validate_file.upload(validate_X, validate_y)
+        validate_file.wait_for_uploading_finish()
+
+        self.bind(train_file, validate_file)
 
         if self.status is not ModelOneStatus.DATASETS_LOADED:
             raise ModelOneException("Dataset is required")

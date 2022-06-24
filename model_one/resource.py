@@ -95,10 +95,6 @@ class ModelOneAPI():
         return cls._request(*cls._get_V0("generate", id), params={"input": input})
 
     @classmethod
-    def upload(cls, id: str, data: dict) -> dict:
-        return cls._request(*cls._get_V0("upload", id), data=data)
-
-    @classmethod
     def bind(cls, id: str, data: dict) -> dict:
         return cls._request(*cls._get_V0("bind", id), data=json.dumps(data))
 

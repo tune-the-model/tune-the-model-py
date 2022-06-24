@@ -350,10 +350,11 @@ class ModelOne():
 
         train_file = ModelOneFile.create("train", self.type)
         train_file.upload(train_X, train_y)
-        train_file.wait_for_uploading_finish()
 
         validate_file = ModelOneFile.create("val", self.type)
         validate_file.upload(validate_X, validate_y)
+
+        train_file.wait_for_uploading_finish()
         validate_file.wait_for_uploading_finish()
 
         self.bind(train_file, validate_file)
@@ -409,57 +410,6 @@ class ModelOne():
                          "train_file": train_file.id, "validate_file": validate_file.id})
         self._update_status()
         return self
-
-    @inited
-    def upload(
-        self,
-        train_X: Union[list, Series, ndarray],
-        train_y: Union[list, Series, ndarray],
-        validate_X: Union[list, Series, ndarray],
-        validate_y: Union[list, Series, ndarray]
-    ) -> dict:
-        if any(len(data) < MINIMUM_ENTRIES for data in [
-            train_X, train_y, validate_X, validate_y
-        ]):
-            raise ModelOneException(
-                f"Dataset must contain at least {MINIMUM_ENTRIES} elements")
-
-        data = {
-            "train_dataset": {
-                "inputs": train_X,
-            },
-            "validate_dataset": {
-                "inputs": validate_X,
-            }
-        }
-
-        key = {
-            ModelOneType.GENERATOR: "outputs",
-            ModelOneType.CLASSIFIER: "classes",
-        }[self.type]
-
-        data["train_dataset"][key] = train_y
-        data["validate_dataset"][key] = validate_y
-
-        def _default(val):
-            if isinstance(val, Series) or isinstance(val, ndarray):
-                return val.tolist()
-
-            raise ModelOneException(
-                f"Value of type '{type(val)}' can not be serialized")
-
-        data = json.dumps(data, default=_default)
-
-        def MB(i):
-            return i / 1024 ** 2
-
-        upper_limit = 1.5 * 1024 ** 2
-        if len(data) > upper_limit:
-            raise ModelOneException(
-                f"Payload exceeds the limit {upper_limit:0.2f}MB with size of {MB(len(data)):0.2f}MB"
-            )
-
-        return ModelOneAPI.upload(self._id, data=data)
 
     def __repr__(self) -> str:
         return str(

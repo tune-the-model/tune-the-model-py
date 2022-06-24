@@ -8,14 +8,20 @@ This package provides a simple wrapper for using our api.
 
 Using `model-one` package allows you to train and apply models.
 
+## Documentation
+
+You can find the documentation at our [ModelOne API docs site](https://beyondml.github.io/model-one-docs/index.html).
+
 ## Just try
+
 We have fine-tuned several models. You can use the [notebook](https://colab.research.google.com/github/beyondml/model-one-py/blob/main/playbook.ipynb) to try them out. You can [get the token](https://model-one.ai/#rec435480002) to fine tune your own model.
 
-## Get started
+## Getting started
 
 Firstly fill out the [form](https://model-one.ai/#rec435480002) to get a key to access the API. We will send you the key within a day.
 
-### Install
+### Installation
+
 To install the package just use `pip install -U model-one`.
 
 ### Usage

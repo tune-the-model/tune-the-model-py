@@ -9,6 +9,7 @@ from typing import Optional, List, Tuple, Union
 
 from pandas import Series
 from numpy import ndarray
+from urllib3 import Retry
 
 
 API_KEY = os.environ.get("BEYONDML_API_KEY")
@@ -58,8 +59,27 @@ class ModelOneAPI():
         if data is not None:
             headers["Content-Type"] = "application/json"
 
-        r = requests.request(method, url, params=params,
-                             data=data, headers=headers)
+        retry_strategy = requests.packages.urllib3.util.retry.Retry(
+            total=3,
+            backoff_factor=1,
+            status_forcelist=[400, 500, 502, 503, 504],
+            method_whitelist=["HEAD", "GET", "PUT", "DELETE", "POST", "OPTIONS", "TRACE"]
+        )
+        adapter = requests.adapters.HTTPAdapter(max_retries=retry_strategy)
+        http = requests.Session()
+        http.mount("https://", adapter)
+        http.mount("http://", adapter)
+
+        try:
+            r = http.request(
+                method,
+                url,
+                params=params,
+                data=data,
+                headers=headers
+            )
+        except requests.exceptions.RetryError as e:
+            raise ModelOneException(e)
 
         if r.status_code != 200:
             raise ModelOneException(r.text)

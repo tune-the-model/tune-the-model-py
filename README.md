@@ -16,7 +16,7 @@ We have fine-tuned several models. You can use the [notebook](https://colab.rese
 Firstly fill out the [form](https://model-one.ai/#rec435480002) to get a key to access the API. We will send you the key within a day.
 
 ### Install
-To install the package just use `pip install model-one`.
+To install the package just use `pip install -U model-one`.
 
 ### Usage
 

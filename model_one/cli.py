@@ -181,7 +181,18 @@ class ModelOneFile():
             raise ModelOne(
                 f"Value of type '{type(val)}' can not be serialized")
 
-        return ModelOneAPI.upload_file(self._id, data=json.dumps(data, default=_default))
+        data = json.dumps(data, default=_default)
+
+        def MB(i):
+            return i / 1024 ** 2
+
+        upper_limit = 1.5 * 1024 ** 2
+        if len(data) > upper_limit:
+            raise ModelOneException(
+                f"Payload exceeds the limit {MB(upper_limit):0.1f}MB with size of {MB(len(data)):0.2f}MB"
+            )
+
+        return ModelOneAPI.upload_file(self._id, data=data)
 
     @classmethod
     def files(cls) -> List['ModelOne']:

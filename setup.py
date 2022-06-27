@@ -8,12 +8,13 @@ with open('requirements.txt') as f:
 
 setup_args = dict(
     name='model_one',
-    version='0.1.12',
+    version='0.1.13',
     description='beyondml',
     long_description_content_type="text/markdown",
     long_description=README,
     license='MIT',
     packages=find_packages(),
+    include_package_data=True,
     author='BeyondML',
     author_email='drewxa@beyond-ml.ai',
     keywords=['beyondml', 'model-one', 'gpt-3', 'nlp'],

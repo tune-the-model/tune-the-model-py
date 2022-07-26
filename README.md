@@ -1,28 +1,28 @@
-# Model One python wrapper
+# Tune The Model python wrapper
 
-[Model One](https://model-one.ai) is a few-shot AutoML system.
+[Tune The Model](https://tunethemodel.com) is a few-shot AutoML system.
 
-Model One can do almost anything that requires understanding or generating natural language. Model One is able to solve tasks in 12 languages: English, Spanish, Portuguese, Russian, Turkish, French, German, Italian, Arabic, Polish, Dutch, and Hebrew.
+Tune The Model can do almost anything that requires understanding or generating natural language. It is able to solve tasks in 12 languages: English, Spanish, Portuguese, Russian, Turkish, French, German, Italian, Arabic, Polish, Dutch, and Hebrew.
 
 This package provides a simple wrapper for using our api.
 
-Using `model-one` package allows you to train and apply models.
+Using `tune-the-model` package allows you to train and apply models.
 
 ## Documentation
 
-You can find the documentation at our [ModelOne API docs site](https://beyondml.github.io/model-one-docs/index.html).
+You can find the documentation at our [Tune The Model API docs site](https://tune-the-model.github.io/tune-the-model-docs/index.html).
 
 ## Just try
 
-We have fine-tuned several models. You can use the [notebook](https://colab.research.google.com/github/beyondml/model-one-py/blob/main/playbook.ipynb) to try them out. You can [get the token](https://model-one.ai/#rec435480002) to fine tune your own model.
+We have fine-tuned several models. You can use the [notebook](https://colab.research.google.com/github/beyondml/model-one-py/blob/main/playbook.ipynb) to try them out. You can [get the token](https://tunethemodel.com) to fine tune your own model.
 
 ## Getting started
 
-Firstly fill out the [form](https://model-one.ai/#rec435480002) to get a key to access the API. We will send you the key within a day.
+Firstly fill out the [form](https://tunethemodel.com) to get a key to access the API. We will send you the key within a day.
 
 ### Installation
 
-To install the package just use `pip install -U model-one`.
+To install the package just use `pip install -U tune-the-model`.
 
 ### Usage
 

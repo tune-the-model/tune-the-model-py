@@ -1,16 +1,16 @@
-from model_one.cli import (
-    ModelOneStatus,
-    ModelOneType,
-    ModelOne,
-    ModelOneFile,
-    ModelOneFileStatus,
-    train_generator,
-    train_classifier,
+from tune_the_model.cli import (
+    TuneTheModelStatus,
+    TuneTheModelType,
+    TuneTheModel,
+    TuneTheModelFile,
+    TuneTheModelFileStatus,
+    tune_generator,
+    tune_classifier,
 )
-from model_one.resource import (
+from tune_the_model.resource import (
     API_URL,
-    ModelOneAPI,
-    ModelOneException,
+    TuneTheModelAPI,
+    TuneTheModelException,
     set_api_key
 )
 
@@ -18,13 +18,13 @@ __all__ = [
     "model_one",
     "set_api_key",
     "API_URL",
-    "ModelOneException",
-    "ModelOneStatus",
-    "ModelOneType",
-    "ModelOne",
-    "ModelOneAPI",
-    "ModelOneFile",
-    "ModelOneFileStatus",
-    "train_generator",
-    "train_classifier",
+    "TuneTheModelException",
+    "TuneTheModelStatus",
+    "TuneTheModelType",
+    "TuneTheModel",
+    "TuneTheModelAPI",
+    "TuneTheModelFile",
+    "TuneTheModelFileStatus",
+    "tune_generator",
+    "tune_classifier",
 ]

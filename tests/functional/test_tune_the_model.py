@@ -5,12 +5,12 @@ import pandas as pd
 import pytest
 import requests
 
-import model_one
+import tune_the_model as ttm
 
 
 @pytest.fixture(scope='session')
 def configured_model_one():
-    model_one.set_api_key(os.environ.get("MODEL_ONE_KEY"))
+    ttm.set_api_key(os.environ.get("TTM_API_KEY"))
 
 
 @pytest.fixture(scope="session")
@@ -23,7 +23,7 @@ def classifier(configured_model_one, tmpdir_factory, dataset):
     train = pd.DataFrame(dataset['train'])
     validation = pd.DataFrame(dataset['validation'])
 
-    model = model_one.train_classifier(
+    model = ttm.tune_classifier(
         tmpdir_factory.mktemp("models").join("classifier.json"),
         train['text'], 
         train['label'], 
@@ -39,10 +39,10 @@ def classifier(configured_model_one, tmpdir_factory, dataset):
 
 def test_train_classifier(classifier):
     assert classifier.status in {
-        model_one.ModelOneStatus.READY,
-        model_one.ModelOneStatus.TRAINING,
-        model_one.ModelOneStatus.TRAIN_REQUESTED,
-        model_one.ModelOneStatus.INQUEUE
+        ttm.ModelOneStatus.READY,
+        ttm.ModelOneStatus.TRAINING,
+        ttm.ModelOneStatus.TRAIN_REQUESTED,
+        ttm.ModelOneStatus.INQUEUE
     }
 
 
@@ -51,12 +51,12 @@ def test_train_classifier_with_large_dataset(configured_model_one, tmpdir_factor
 
     data = pd.concat([data] * 10)
 
-    model = model_one.ModelOne.create_classifier(
+    model = ttm.TuneTheModel.create_classifier(
         tmpdir_factory.mktemp("models").join("classifier-with-large-dataset.json"),
         train_iters=10,
     )
 
-    with pytest.raises(model_one.ModelOneException) as exc:
+    with pytest.raises(ttm.ModelOneException) as exc:
         model.fit(
             X=data["text"],
             y=data["label"],
@@ -74,7 +74,7 @@ def trained_classifier(classifier):
 
 
 def test_trained_classifier(trained_classifier, dataset):
-    assert trained_classifier.status == model_one.ModelOneStatus.READY
+    assert trained_classifier.status == ttm.ModelOneStatus.READY
 
     validation = pd.DataFrame(dataset['validation'])
 
@@ -92,7 +92,7 @@ def generator(configured_model_one, tmpdir_factory, dataset):
     validation_inputs = ["бассейн", "бахрома"] * 32
     validation_outputs = ["libre", "flecos"] * 32
 
-    model = model_one.train_generator(
+    model = ttm.tune_generator(
         tmpdir_factory.mktemp("models").join("generator.json"),
         train_inputs,
         train_outputs,
@@ -108,10 +108,10 @@ def generator(configured_model_one, tmpdir_factory, dataset):
 
 def test_generator(generator):
     assert generator.status in {
-        model_one.ModelOneStatus.READY,
-        model_one.ModelOneStatus.TRAINING,
-        model_one.ModelOneStatus.TRAIN_REQUESTED,
-        model_one.ModelOneStatus.INQUEUE
+        ttm.ModelOneStatus.READY,
+        ttm.ModelOneStatus.TRAINING,
+        ttm.ModelOneStatus.TRAIN_REQUESTED,
+        ttm.ModelOneStatus.INQUEUE
     }
 
 
@@ -123,6 +123,6 @@ def trained_generator(generator):
 
 
 def test_trained_generator(trained_generator):
-    assert trained_generator.status == model_one.ModelOneStatus.READY
+    assert trained_generator.status == ttm.ModelOneStatus.READY
 
     assert len(trained_generator.generate("бассейн")) > 0

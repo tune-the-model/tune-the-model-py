@@ -7,8 +7,8 @@ with open('requirements.txt') as f:
     requirements = f.read().splitlines()
 
 setup_args = dict(
-    name='model_one',
-    version='0.1.14',
+    name='tune_the_model',
+    version='0.1.1',
     description='beyondml',
     long_description_content_type="text/markdown",
     long_description=README,
@@ -16,9 +16,9 @@ setup_args = dict(
     packages=find_packages(),
     include_package_data=True,
     author='BeyondML',
-    author_email='drewxa@beyond-ml.ai',
-    keywords=['beyondml', 'model-one', 'gpt-3', 'nlp'],
-    url='https://github.com/beyondml/model-one-py',
+    author_email='pavel.gavrilov@beyond.ml',
+    keywords=['beyondml', 'tune-the-model', 'gpt-3', 'nlp'],
+    url='https://github.com/tune-the-model/tune-the-model-py',
     download_url='https://pypi.org/project/beyond.ml/'
 )
 

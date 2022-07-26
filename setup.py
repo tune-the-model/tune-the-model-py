@@ -8,7 +8,7 @@ with open('requirements.txt') as f:
 
 setup_args = dict(
     name='tune_the_model',
-    version='0.1.1',
+    version='0.1.16',
     description='beyondml',
     long_description_content_type="text/markdown",
     long_description=README,

@@ -5,8 +5,8 @@ import os
 import requests
 
 
-API_KEY = os.environ.get("MODEL_ONE_API_KEY")
-API_URL = "https://api.beyond.ml"
+API_KEY = os.environ.get("TTM_API_KEY")
+API_URL = "https://api.tunethemodel.com"
 
 
 def set_api_key(api_key):
@@ -14,11 +14,11 @@ def set_api_key(api_key):
     API_KEY = api_key
 
 
-class ModelOneException(RuntimeError):
+class TuneTheModelException(RuntimeError):
     pass
 
 
-class ModelOneAPI():
+class TuneTheModelAPI():
     API_URL: Optional[str] = None
 
     V0: dict = {
@@ -71,10 +71,10 @@ class ModelOneAPI():
                 headers=headers
             )
         except requests.exceptions.RetryError as e:
-            raise ModelOneException(e)
+            raise TuneTheModelException(e)
 
         if r.status_code != 200:
-            raise ModelOneException(r.text)
+            raise TuneTheModelException(r.text)
 
         return r.json()
 

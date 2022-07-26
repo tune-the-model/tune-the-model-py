@@ -10,16 +10,16 @@ from pandas import Series
 from numpy import ndarray
 from urllib3 import Retry
 
-from model_one.resource import (
-    ModelOneAPI,
-    ModelOneException,
+from tune_the_model.resource import (
+    TuneTheModelAPI,
+    TuneTheModelException,
 )
 
 
 MINIMUM_ENTRIES = 32
 
 
-class ModelOneStatus(str, Enum):
+class TuneTheModelStatus(str, Enum):
     READY = "ready"
     CREATED = "created"
     DATASETS_LOADED = "datasetsloaded"
@@ -30,7 +30,7 @@ class ModelOneStatus(str, Enum):
     INQUEUE = "inqueue"
 
 
-class ModelOneFileStatus(str, Enum):
+class TuneTheModelFileStatus(str, Enum):
     READY = "fileready"
     CREATED = "filecreated"
     INQUEUE = "fileinqueue"
@@ -39,23 +39,23 @@ class ModelOneFileStatus(str, Enum):
     FAILED = "filefailed"
 
 
-class ModelOneType(str, Enum):
+class TuneTheModelType(str, Enum):
     GENERATOR = "generator"
     CLASSIFIER = "classifier"
 
 
 def inited(m: callable):
     @wraps(m)
-    def _wrapper(self: 'ModelOne', *args, **kwargs):
+    def _wrapper(self: 'TuneTheModel', *args, **kwargs):
         if not self.is_inited:
-            raise ModelOneException("Initialize the model")
+            raise TuneTheModelException("Initialize the model")
 
         return m(self, *args, **kwargs)
 
     return _wrapper
 
 
-class ModelOneFile():
+class TuneTheModelFile():
     _id: str = None
     _status: str = None
     _task_type: str = None
@@ -68,32 +68,32 @@ class ModelOneFile():
         self._file_name = file_name
 
     @classmethod
-    def from_dict(cls, model: dict) -> 'ModelOneFile':
+    def from_dict(cls, model: dict) -> 'TuneTheModelFile':
         return cls(**model)
 
     @classmethod
-    def from_id(cls, id: str) -> 'ModelOneFile':
-        r = ModelOneAPI.file_status(id)
+    def from_id(cls, id: str) -> 'TuneTheModelFile':
+        r = TuneTheModelAPI.file_status(id)
         return cls.from_dict(r)
 
     @classmethod
-    def create(cls, file_name: str, task_type: ModelOneType) -> 'ModelOneFile':
-        r = ModelOneAPI.create_file(
+    def create(cls, file_name: str, task_type: TuneTheModelType) -> 'TuneTheModelFile':
+        r = TuneTheModelAPI.create_file(
             {"name": file_name, "task_type": task_type.value})
         return cls.from_dict(r)
 
     @classmethod
-    def load(cls, filename: str) -> 'ModelOneFile':
+    def load(cls, filename: str) -> 'TuneTheModelFile':
         with open(filename, "r") as fl:
             data = json.load(fl)
             return cls.from_dict(data)
 
     @classmethod
-    def load_or_create(cls, filename: str, file_name: str, task_type: ModelOneType) -> 'ModelOneFile':
+    def load_or_create(cls, filename: str, file_name: str, task_type: TuneTheModelType) -> 'TuneTheModelFile':
         if os.path.isfile(filename):
             model = cls.load(filename)
             if model.type != task_type:
-                raise ModelOneException(
+                raise TuneTheModelException(
                     f"Model in the file is not {task_type}")
         else:
             model = cls.create(file_name, task_type)
@@ -117,18 +117,18 @@ class ModelOneFile():
     @property
     @inited
     def is_ready(self):
-        return self.status is ModelOneFileStatus.READY
+        return self.status is TuneTheModelFileStatus.READY
 
     @property
     @inited
-    def status(self) -> ModelOneFileStatus:
+    def status(self) -> TuneTheModelFileStatus:
         status = self._update_status()
-        return ModelOneFileStatus(status.lower())
+        return TuneTheModelFileStatus(status.lower())
 
     @property
     @inited
-    def type(self) -> ModelOneType:
-        return ModelOneType(self._task_type.lower())
+    def type(self) -> TuneTheModelType:
+        return TuneTheModelType(self._task_type.lower())
 
     @property
     @inited
@@ -137,18 +137,18 @@ class ModelOneFile():
 
     @inited
     def _update_status(self) -> str:
-        r = ModelOneAPI.file_status(self._id)
+        r = TuneTheModelAPI.file_status(self._id)
         self._status = status = r["status"]
         return status
 
     @inited
     def delete(self) -> str:
-        r = ModelOneAPI.delete_file(self._id)
+        r = TuneTheModelAPI.delete_file(self._id)
         return r
 
     @inited
     def wait_for_uploading_finish(self, sleep_for: int = 1):
-        while self.status is not ModelOneFileStatus.READY:
+        while self.status is not TuneTheModelFileStatus.READY:
             sleep(sleep_for)
 
     @inited
@@ -160,7 +160,7 @@ class ModelOneFile():
         if any(len(data) < MINIMUM_ENTRIES for data in [
             X, y
         ]):
-            raise ModelOneException(
+            raise TuneTheModelException(
                 f"Dataset must contain at least {MINIMUM_ENTRIES} elements")
 
         data = {
@@ -168,8 +168,8 @@ class ModelOneFile():
         }
 
         key = {
-            ModelOneType.GENERATOR: "outputs",
-            ModelOneType.CLASSIFIER: "classes",
+            TuneTheModelType.GENERATOR: "outputs",
+            TuneTheModelType.CLASSIFIER: "classes",
         }[self.type]
 
         data[key] = y
@@ -178,7 +178,7 @@ class ModelOneFile():
             if isinstance(val, Series) or isinstance(val, ndarray):
                 return val.tolist()
 
-            raise ModelOne(
+            raise TuneTheModel(
                 f"Value of type '{type(val)}' can not be serialized")
 
         data = json.dumps(data, default=_default)
@@ -188,15 +188,15 @@ class ModelOneFile():
 
         upper_limit = 1.5 * 1024 ** 2
         if len(data) > upper_limit:
-            raise ModelOneException(
+            raise TuneTheModelException(
                 f"Payload exceeds the limit {MB(upper_limit):0.1f}MB with size of {MB(len(data)):0.2f}MB"
             )
 
-        return ModelOneAPI.upload_file(self._id, data=data)
+        return TuneTheModelAPI.upload_file(self._id, data=data)
 
     @classmethod
-    def files(cls) -> List['ModelOne']:
-        r = ModelOneAPI.files()
+    def files(cls) -> List['TuneTheModel']:
+        r = TuneTheModelAPI.files()
 
         return [
             cls.from_dict(data) for data in r.get("files", [])
@@ -223,7 +223,7 @@ class ModelOneFile():
         )
 
 
-class ModelOne():
+class TuneTheModel():
     _id: str = None
     _status: str = None
     _model_type: str = None
@@ -236,17 +236,17 @@ class ModelOne():
         self._model_user_name = kwargs["user_name"] if "user_name" in kwargs else None
 
     @classmethod
-    def from_dict(cls, model: dict) -> 'ModelOne':
+    def from_dict(cls, model: dict) -> 'TuneTheModel':
         return cls(**model)
 
     @classmethod
-    def from_id(cls, id: str) -> 'ModelOne':
-        r = ModelOneAPI.status(id)
+    def from_id(cls, id: str) -> 'TuneTheModel':
+        r = TuneTheModelAPI.status(id)
         return cls.from_dict(r)
 
     @classmethod
-    def create(cls, data: dict) -> 'ModelOne':
-        r = ModelOneAPI.create(data)
+    def create(cls, data: dict) -> 'TuneTheModel':
+        r = TuneTheModelAPI.create(data)
         return cls.from_dict(r)
 
     @classmethod
@@ -270,25 +270,25 @@ class ModelOne():
         return cls.load_or_create(filename, model)
 
     @classmethod
-    def models(cls) -> List['ModelOne']:
-        r = ModelOneAPI.models()
+    def models(cls) -> List['TuneTheModel']:
+        r = TuneTheModelAPI.models()
 
         return [
             cls.from_dict(data) for data in r.get("models", [])
         ]
 
     @classmethod
-    def load(cls, filename: str) -> 'ModelOne':
+    def load(cls, filename: str) -> 'TuneTheModel':
         with open(filename, "r") as fl:
             data = json.load(fl)
             return cls.from_dict(data)
 
     @classmethod
-    def load_or_create(cls, filename: str, data: dict) -> 'ModelOne':
+    def load_or_create(cls, filename: str, data: dict) -> 'TuneTheModel':
         if os.path.isfile(filename):
             model = cls.load(filename)
             if model.type != data["model_type"]:
-                raise ModelOneException(
+                raise TuneTheModelException(
                     f"Model in the file is not {data['model_type']}")
         else:
             model = cls.create(data)
@@ -311,28 +311,28 @@ class ModelOne():
     @property
     @inited
     def is_ready(self):
-        return self.status is ModelOneStatus.READY
+        return self.status is TuneTheModelStatus.READY
 
     @property
     @inited
-    def status(self) -> ModelOneStatus:
+    def status(self) -> TuneTheModelStatus:
         status = self._update_status()
-        return ModelOneStatus(status.lower())
+        return TuneTheModelStatus(status.lower())
 
     @property
     @inited
-    def type(self) -> ModelOneType:
-        return ModelOneType(self._model_type.lower())
+    def type(self) -> TuneTheModelType:
+        return TuneTheModelType(self._model_type.lower())
 
     @inited
     def _update_status(self) -> str:
-        r = ModelOneAPI.status(self._id)
+        r = TuneTheModelAPI.status(self._id)
         self._status = status = r["status"]
         return status
 
     @inited
     def delete(self) -> str:
-        r = ModelOneAPI.delete_model(self._id)
+        r = TuneTheModelAPI.delete_model(self._id)
         return r
 
     @inited
@@ -348,8 +348,8 @@ class ModelOne():
         train_size=None,
         shuffle=True,
         random_state=None
-    ) -> 'ModelOne':
-        if self.status in {ModelOneStatus.READY, ModelOneStatus.TRAINING, ModelOneStatus.TRAIN_REQUESTED}:
+    ) -> 'TuneTheModel':
+        if self.status in {TuneTheModelStatus.READY, TuneTheModelStatus.TRAINING, TuneTheModelStatus.TRAIN_REQUESTED}:
             return self
 
         if all(data is not None for data in [X, y]):
@@ -359,10 +359,10 @@ class ModelOne():
                 random_state=random_state, shuffle=shuffle
             )
 
-        train_file = ModelOneFile.create("train", self.type)
+        train_file = TuneTheModelFile.create("train", self.type)
         train_file.upload(train_X, train_y)
 
-        validate_file = ModelOneFile.create("val", self.type)
+        validate_file = TuneTheModelFile.create("val", self.type)
         validate_file.upload(validate_X, validate_y)
 
         train_file.wait_for_uploading_finish()
@@ -370,10 +370,10 @@ class ModelOne():
 
         self.bind(train_file, validate_file)
 
-        if self.status is not ModelOneStatus.DATASETS_LOADED:
-            raise ModelOneException("Dataset is required")
+        if self.status is not TuneTheModelStatus.DATASETS_LOADED:
+            raise TuneTheModelException("Dataset is required")
 
-        ModelOneAPI.fit(self._id)
+        TuneTheModelAPI.fit(self._id)
         self._update_status()
 
         return self
@@ -389,9 +389,9 @@ class ModelOne():
             Generated text.
 
         Raises:
-            ModelOneException: If anything bad happens.
+            TuneTheModelException: If anything bad happens.
         """
-        r = ModelOneAPI.generate(self._id, input)
+        r = TuneTheModelAPI.generate(self._id, input)
         return r["answer"]["responses"][0]["response"]
 
     @inited
@@ -405,19 +405,19 @@ class ModelOne():
             A probability distribution over a set of classes.
 
         Raises:
-            ModelOneException: If anything bad happens.
+            TuneTheModelException: If anything bad happens.
         """
-        r = ModelOneAPI.classify(self._id, input)
+        r = TuneTheModelAPI.classify(self._id, input)
         return r["answer"]["scores"]
 
     @inited
     def wait_for_training_finish(self, sleep_for: int = 60):
-        while self.status is not ModelOneStatus.READY:
+        while self.status is not TuneTheModelStatus.READY:
             sleep(sleep_for)
 
     @inited
-    def bind(self, train_file: ModelOneFile, validate_file: ModelOneFile) -> 'ModelOne':
-        ModelOneAPI.bind(self._id, data={
+    def bind(self, train_file: TuneTheModelFile, validate_file: TuneTheModelFile) -> 'TuneTheModel':
+        TuneTheModelAPI.bind(self._id, data={
                          "train_file": train_file.id, "validate_file": validate_file.id})
         self._update_status()
         return self
@@ -443,7 +443,7 @@ class ModelOne():
         )
 
 
-def train_generator(
+def tune_generator(
     filename: str,
     train_X: Union[list, Series, ndarray, None] = None,
     train_y: Union[list, Series, ndarray, None] = None,
@@ -456,7 +456,7 @@ def train_generator(
     train_size=None,
     shuffle=True,
     random_state=None
-) -> ModelOne:
+) -> TuneTheModel:
     """Train the generator according to the given training data.
 
     Examples:
@@ -510,15 +510,15 @@ def train_generator(
         The model object.
 
     Raises:
-        ModelOneException: If anything bad happens.
+        TuneTheModelException: If anything bad happens.
     """
-    model = ModelOne.create_generator(filename, train_iters)
+    model = TuneTheModel.create_generator(filename, train_iters)
     model.fit(train_X, train_y, validate_X, validate_y, X, y,
               test_size, train_size, shuffle, random_state)
     return model
 
 
-def train_classifier(
+def tune_classifier(
     filename: str,
     train_X: Union[list, Series, ndarray, None] = None,
     train_y: Union[list, Series, ndarray, None] = None,
@@ -532,7 +532,7 @@ def train_classifier(
     train_size=None,
     shuffle=True,
     random_state=None
-) -> ModelOne:
+) -> TuneTheModel:
     """Train the classifier according to the given training data.
 
     Examples:
@@ -589,9 +589,9 @@ def train_classifier(
         The model object.
 
     Raises:
-        ModelOneException: If anything bad happens.
+        TuneTheModelException: If anything bad happens.
     """
-    model = ModelOne.create_classifier(filename, train_iters, num_classes)
+    model = TuneTheModel.create_classifier(filename, train_iters, num_classes)
     model.fit(train_X, train_y, validate_X, validate_y, X, y,
               test_size, train_size, shuffle, random_state)
     return model

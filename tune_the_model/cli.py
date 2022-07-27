@@ -595,3 +595,19 @@ def tune_classifier(
     model.fit(train_X, train_y, validate_X, validate_y, X, y,
               test_size, train_size, shuffle, random_state)
     return model
+
+
+def generate(input: str):
+    """Generates a suffix based on an input prefix.
+
+    Args:
+        input : Prefix for generating a suffix.
+
+    Returns:
+        Generated text.
+
+    Raises:
+        TuneTheModelException: If anything bad happens.
+    """
+    r = TuneTheModelAPI.vanilla_generate({"input": input})
+    return r["answer"]["responses"][0]["response"]

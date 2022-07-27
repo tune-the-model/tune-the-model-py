@@ -9,7 +9,7 @@ import tune_the_model as ttm
 
 
 @pytest.fixture(scope='session')
-def configured_model_one():
+def configured_tune_the_model():
     ttm.set_api_key(os.environ.get("TTM_API_KEY"))
 
 
@@ -19,7 +19,7 @@ def dataset():
 
 
 @pytest.fixture(scope="module")
-def classifier(configured_model_one, tmpdir_factory, dataset):
+def classifier(configured_tune_the_model, tmpdir_factory, dataset):
     train = pd.DataFrame(dataset['train'])
     validation = pd.DataFrame(dataset['validation'])
 
@@ -46,7 +46,13 @@ def test_train_classifier(classifier):
     }
 
 
-def test_train_classifier_with_large_dataset(configured_model_one, tmpdir_factory, dataset):
+def test_vanilla_generate(configured_tune_the_model):
+    output = ttm.generate("Tell me a joke")
+
+    assert len(output) > 0
+
+
+def test_train_classifier_with_large_dataset(configured_tune_the_model, tmpdir_factory, dataset):
     data = pd.DataFrame(dataset["train"])
 
     data = pd.concat([data] * 10)
@@ -86,7 +92,7 @@ def test_trained_classifier(trained_classifier, dataset):
 
 
 @pytest.fixture(scope="module")
-def generator(configured_model_one, tmpdir_factory, dataset):
+def generator(configured_tune_the_model, tmpdir_factory, dataset):
     train_inputs = ["алый", "альбом"] * 32
     train_outputs = ["escarlata", "el álbum"] * 32
     validation_inputs = ["бассейн", "бахрома"] * 32

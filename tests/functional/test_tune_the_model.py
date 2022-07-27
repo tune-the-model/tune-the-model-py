@@ -39,10 +39,10 @@ def classifier(configured_model_one, tmpdir_factory, dataset):
 
 def test_train_classifier(classifier):
     assert classifier.status in {
-        ttm.ModelOneStatus.READY,
-        ttm.ModelOneStatus.TRAINING,
-        ttm.ModelOneStatus.TRAIN_REQUESTED,
-        ttm.ModelOneStatus.INQUEUE
+        ttm.TuneTheModelStatus.READY,
+        ttm.TuneTheModelStatus.TRAINING,
+        ttm.TuneTheModelStatus.TRAIN_REQUESTED,
+        ttm.TuneTheModelStatus.INQUEUE
     }
 
 
@@ -56,7 +56,7 @@ def test_train_classifier_with_large_dataset(configured_model_one, tmpdir_factor
         train_iters=10,
     )
 
-    with pytest.raises(ttm.ModelOneException) as exc:
+    with pytest.raises(ttm.TuneTheModelException) as exc:
         model.fit(
             X=data["text"],
             y=data["label"],
@@ -74,7 +74,7 @@ def trained_classifier(classifier):
 
 
 def test_trained_classifier(trained_classifier, dataset):
-    assert trained_classifier.status == ttm.ModelOneStatus.READY
+    assert trained_classifier.status == ttm.TuneTheModelStatus.READY
 
     validation = pd.DataFrame(dataset['validation'])
 
@@ -108,10 +108,10 @@ def generator(configured_model_one, tmpdir_factory, dataset):
 
 def test_generator(generator):
     assert generator.status in {
-        ttm.ModelOneStatus.READY,
-        ttm.ModelOneStatus.TRAINING,
-        ttm.ModelOneStatus.TRAIN_REQUESTED,
-        ttm.ModelOneStatus.INQUEUE
+        ttm.TuneTheModelStatus.READY,
+        ttm.TuneTheModelStatus.TRAINING,
+        ttm.TuneTheModelStatus.TRAIN_REQUESTED,
+        ttm.TuneTheModelStatus.INQUEUE
     }
 
 
@@ -123,6 +123,6 @@ def trained_generator(generator):
 
 
 def test_trained_generator(trained_generator):
-    assert trained_generator.status == ttm.ModelOneStatus.READY
+    assert trained_generator.status == ttm.TuneTheModelStatus.READY
 
     assert len(trained_generator.generate("бассейн")) > 0

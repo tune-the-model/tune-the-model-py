@@ -6,6 +6,7 @@ from tune_the_model.cli import (
     TuneTheModelFileStatus,
     tune_generator,
     tune_classifier,
+    generate,
 )
 from tune_the_model.resource import (
     API_URL,
@@ -27,4 +28,5 @@ __all__ = [
     "TuneTheModelFileStatus",
     "tune_generator",
     "tune_classifier",
+    "generate",
 ]

@@ -6,7 +6,7 @@ import requests
 
 
 API_KEY = os.environ.get("TTM_API_KEY")
-API_URL = "https://api.tunethemodel.com"
+API_URL = "http://taas-testing.in.yandex.net"
 
 
 def set_api_key(api_key):

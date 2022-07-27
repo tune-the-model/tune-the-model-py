@@ -120,7 +120,6 @@ def generator(configured_tune_the_model, tmpdir_factory, dataset):
     train_outputs = ["escarlata", "el álbum"] * 32
     validation_inputs = ["бассейн", "бахрома"] * 32
     validation_outputs = ["libre", "flecos"] * 32
-    base_model = "model1-en-ar"
 
     model = ttm.tune_generator(
         tmpdir_factory.mktemp("models").join("generator.json"),
@@ -128,7 +127,6 @@ def generator(configured_tune_the_model, tmpdir_factory, dataset):
         train_outputs,
         validation_inputs,
         validation_outputs,
-        base_model=base_model,
         train_iters=TRAIN_ITERS
     )
 

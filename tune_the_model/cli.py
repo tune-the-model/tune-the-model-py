@@ -45,6 +45,11 @@ class TuneTheModelType(str, Enum):
     CLASSIFIER = "classifier"
 
 
+class PretrainedInstance(str, Enum):
+    MODEL1 = "model1"
+    MODEL_EN_AR = "model1-en-ar"
+
+
 def inited(m: callable):
     @wraps(m)
     def _wrapper(self: 'TuneTheModel', *args, **kwargs):

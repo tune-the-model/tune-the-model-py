@@ -7,6 +7,7 @@ import requests
 from tune_the_model.cli import (
     TuneTheModelStatus,
     TuneTheModelType,
+    PretrainedInstance,
     TuneTheModel,
     TuneTheModelFile,
     TuneTheModelFileStatus,

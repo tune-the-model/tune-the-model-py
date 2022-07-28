@@ -153,10 +153,10 @@ class TuneTheModelFile():
 
     @inited
     def wait_for_uploading_finish(self, sleep_for: int = 1):
-        log.log("We are taking your model in work")
-        while self.status is not TuneTheModelStatus.READY:
-            if (self.status is TuneTheModelStatus.FAILED):
-                log.error("Fit failed, something went wrong. Try to check your promts")
+        log.log("We are taking your files on upload")
+        while self.status is not TuneTheModelFileStatus.READY:
+            if TuneTheModelFileStatus.FAILED:
+                log.error("Something went wrong during upload. Please contact us about this issue")
             sleep(sleep_for)
 
 
@@ -422,7 +422,10 @@ class TuneTheModel():
 
     @inited
     def wait_for_training_finish(self, sleep_for: int = 60):
+        log.log("We are taking your model in work")
         while self.status is not TuneTheModelStatus.READY:
+            if (self.status is TuneTheModelStatus.FAILED):
+                log.error("Fit failed, something went wrong. Please contact us about this issue")
             sleep(sleep_for)
 
     @inited

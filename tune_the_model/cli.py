@@ -15,6 +15,11 @@ from tune_the_model.resource import (
     TuneTheModelException,
 )
 
+import logging
+
+log = logging.getLogger(__name__)
+log.setLevel(20)
+
 
 MINIMUM_ENTRIES = 32
 
@@ -148,8 +153,12 @@ class TuneTheModelFile():
 
     @inited
     def wait_for_uploading_finish(self, sleep_for: int = 1):
-        while self.status is not TuneTheModelFileStatus.READY:
+        log.log("We are taking your model in work")
+        while self.status is not TuneTheModelStatus.READY:
+            if (self.status is TuneTheModelStatus.FAILED):
+                log.error("Fit failed, something went wrong. Try to check your promts")
             sleep(sleep_for)
+
 
     @inited
     def upload(

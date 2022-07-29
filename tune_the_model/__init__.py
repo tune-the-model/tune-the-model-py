@@ -16,7 +16,7 @@ from tune_the_model.resource import (
 )
 
 __all__ = [
-    "model_one",
+    "tune_the_model",
     "set_api_key",
     "API_URL",
     "TuneTheModelException",

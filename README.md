@@ -27,10 +27,10 @@ To install the package just use `pip install -U tune-the-model`.
 ### Usage
 
 ```py
-import model_one
+import tune_the_model as ttm
 import pandas as pd
 
-model_one.set_api_key('YOUR_API_KEY')
+ttm.set_api_key('YOUR_API_KEY')
 
 # load datasets
 tdf = pd.read_csv('train.csv')
@@ -38,7 +38,7 @@ vdf = pd.read_csv('test.csv')
 
 # Call one method. It will do everything for you:
 # create a model, save it to the file, upload datasets and put the model in the queue for training.
-model = model_one.train_generator(
+model = ttm.tune_generator(
     'filename.json',
     tdf['inputs'], tdf['outputs'],
     vdf['inputs'], vdf['outputs']

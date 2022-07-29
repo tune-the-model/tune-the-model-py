@@ -17,8 +17,7 @@ from tune_the_model.resource import (
 
 import logging
 
-log = logging.getLogger(__name__)
-log.setLevel(20)
+logger = logging.getLogger(__name__)
 
 
 MINIMUM_ENTRIES = 32
@@ -153,10 +152,10 @@ class TuneTheModelFile():
 
     @inited
     def wait_for_uploading_finish(self, sleep_for: int = 1):
-        log.log("We are taking your files on upload")
+        logger.info("We are taking your files on upload")
         while self.status is not TuneTheModelFileStatus.READY:
             if TuneTheModelFileStatus.FAILED:
-                log.error("Something went wrong during upload. Please contact us about this issue")
+                logger.error("Something went wrong during upload. Please contact us about this issue")
             sleep(sleep_for)
 
 
@@ -421,10 +420,10 @@ class TuneTheModel():
 
     @inited
     def wait_for_training_finish(self, sleep_for: int = 60):
-        log.log("We are taking your model in work")
+        logger.info("We are taking your model in work")
         while self.status is not TuneTheModelStatus.READY:
             if (self.status is TuneTheModelStatus.FAILED):
-                log.error("Fit failed, something went wrong. Please contact us about this issue")
+                logger.error("Fit failed, something went wrong. Please contact us about this issue")
             sleep(sleep_for)
 
     @inited

@@ -3,9 +3,11 @@ import os
 from datasets import load_dataset
 import pandas as pd
 import pytest
-import requests
 
 import tune_the_model as ttm
+
+
+TRAIN_ITERS = 101
 
 
 @pytest.fixture(scope='session')
@@ -29,7 +31,7 @@ def classifier(configured_tune_the_model, tmpdir_factory, dataset):
         train['label'], 
         validation['text'], 
         validation['label'],
-        train_iters=10
+        train_iters=TRAIN_ITERS
     )
 
     yield model
@@ -104,7 +106,7 @@ def generator(configured_tune_the_model, tmpdir_factory, dataset):
         train_outputs,
         validation_inputs,
         validation_outputs,
-        train_iters=10
+        train_iters=TRAIN_ITERS
     )
 
     yield model

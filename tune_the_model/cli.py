@@ -391,7 +391,7 @@ class TuneTheModel():
         Raises:
             TuneTheModelException: If anything bad happens.
         """
-        r = TuneTheModelAPI.generate(self._id, input)
+        r = TuneTheModelAPI.generate(self._id, {"input" : input})
         return r["answer"]["responses"][0]["response"]
 
     @inited

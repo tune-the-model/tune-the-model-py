@@ -57,11 +57,11 @@ def test_vanilla_generate(configured_tune_the_model):
 def test_train_classifier_with_large_dataset(configured_tune_the_model, tmpdir_factory, dataset):
     data = pd.DataFrame(dataset["train"])
 
-    data = pd.concat([data] * 10)
+    data = pd.concat([data] * 50)
 
     model = ttm.TuneTheModel.create_classifier(
         tmpdir_factory.mktemp("models").join("classifier-with-large-dataset.json"),
-        train_iters=10,
+        train_iters=TRAIN_ITERS,
     )
 
     with pytest.raises(ttm.TuneTheModelException) as exc:
@@ -91,6 +91,28 @@ def test_trained_classifier(trained_classifier, dataset):
         res_validation += trained_classifier.classify(input=text)
 
     assert len(res_validation) > 0
+
+
+def test_trained_multiclass(configured_tune_the_model, tmpdir_factory):
+    dataset = load_dataset("qanastek/MASSIVE", "ru-RU")
+
+    train = pd.DataFrame(dataset['train'])
+    validation = pd.DataFrame(dataset['validation'])
+
+    model = ttm.tune_classifier(
+        tmpdir_factory.mktemp("models").join("classifier.json"),
+        train['utt'],
+        train['intent'],
+        validation['utt'],
+        validation['intent'],
+        train_iters=TRAIN_ITERS,
+        num_classes=60
+    )
+
+    model.wait_for_training_finish()
+    model.classify(input="поставь будильник на 9 утра")
+
+    model.delete()
 
 
 @pytest.fixture(scope="module")

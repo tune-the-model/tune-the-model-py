@@ -186,7 +186,7 @@ class TuneTheModelFile():
         def MB(i):
             return i / 1024 ** 2
 
-        upper_limit = 1.5 * 1024 ** 2
+        upper_limit = 8 * 1024 ** 2
         if len(data) > upper_limit:
             raise TuneTheModelException(
                 f"Payload exceeds the limit {MB(upper_limit):0.1f}MB with size of {MB(len(data)):0.2f}MB"
@@ -253,10 +253,11 @@ class TuneTheModel():
     def create_classifier(cls, filename: str, train_iters: int = None, num_classes: int = None):
         model = {"model_type": "classifier"}
 
+        model["model_params"] = {}
         if train_iters:
-            model["model_params"] = {"train_iters": train_iters}
+            model["model_params"]["train_iters"] = train_iters
         if num_classes:
-            model["model_params"] = {"num_classes": num_classes}
+            model["model_params"]["num_classes"] = num_classes
 
         return cls.load_or_create(filename, model)
 

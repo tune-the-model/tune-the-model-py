@@ -609,5 +609,5 @@ def generate(input: str, model_id: str="default-generator"):
     Raises:
         TuneTheModelException: If anything bad happens.
     """
-    r = TuneTheModelAPI.generate({"input": input})
+    r = TuneTheModelAPI.generate(model_id, {"input": input})
     return r["answer"]["responses"][0]["response"]

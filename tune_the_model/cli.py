@@ -597,7 +597,7 @@ def tune_classifier(
     return model
 
 
-def generate(input: str):
+def generate(input: str, model_id: str="default-generator"):
     """Generates a suffix based on an input prefix.
 
     Args:
@@ -609,5 +609,5 @@ def generate(input: str):
     Raises:
         TuneTheModelException: If anything bad happens.
     """
-    r = TuneTheModelAPI.vanilla_generate({"input": input})
+    r = TuneTheModelAPI.generate({"input": input})
     return r["answer"]["responses"][0]["response"]

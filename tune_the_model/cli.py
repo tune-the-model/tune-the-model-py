@@ -8,7 +8,6 @@ from typing import List, Union
 
 from pandas import Series
 from numpy import ndarray
-from urllib3 import Retry
 
 from tune_the_model.resource import (
     TuneTheModelAPI,
@@ -392,7 +391,7 @@ class TuneTheModel():
         Raises:
             TuneTheModelException: If anything bad happens.
         """
-        r = TuneTheModelAPI.generate(self._id, {"input" : input})
+        r = TuneTheModelAPI.generate(self._id, {"input": input})
         return r["answer"]["responses"][0]["response"]
 
     @inited
@@ -598,7 +597,7 @@ def tune_classifier(
     return model
 
 
-def generate(input: str, model_id: str="default-generator"):
+def generate(input: str, model_id: str = "default-generator"):
     """Generates a suffix based on an input prefix.
 
     Args:

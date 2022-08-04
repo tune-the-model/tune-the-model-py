@@ -392,7 +392,7 @@ class TuneTheModel():
         Raises:
             TuneTheModelException: If anything bad happens.
         """
-        r = TuneTheModelAPI.generate(self._id, input)
+        r = TuneTheModelAPI.generate(self._id, {"input" : input})
         return r["answer"]["responses"][0]["response"]
 
     @inited
@@ -598,7 +598,7 @@ def tune_classifier(
     return model
 
 
-def generate(input: str):
+def generate(input: str, model_id: str="default-generator"):
     """Generates a suffix based on an input prefix.
 
     Args:
@@ -610,5 +610,5 @@ def generate(input: str):
     Raises:
         TuneTheModelException: If anything bad happens.
     """
-    r = TuneTheModelAPI.vanilla_generate({"input": input})
+    r = TuneTheModelAPI.generate(model_id, {"input": input})
     return r["answer"]["responses"][0]["response"]

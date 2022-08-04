@@ -48,7 +48,7 @@ def test_train_classifier(classifier):
     }
 
 
-def test_vanilla_generate(configured_tune_the_model):
+def test_fewshot_generate(configured_tune_the_model):
     output = ttm.generate("Tell me a joke")
 
     assert len(output) > 0

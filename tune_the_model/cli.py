@@ -1,3 +1,4 @@
+from genericpath import isfile
 import os
 import json
 
@@ -270,12 +271,6 @@ class TuneTheModel():
         return cls.create_from_file(filename, model)
 
     @classmethod
-    def load_classifier(cls, filename: str):
-        model = {"model_type": "classifier"}
-
-        return cls.load(filename, model)
-
-    @classmethod
     def create_generator(cls, filename: str=None, train_iters: int = None):
         model = {"model_type": "generator"}
 
@@ -283,12 +278,6 @@ class TuneTheModel():
             model["model_params"] = {"train_iters": train_iters}
 
         return cls.create_from_file(filename, model)
-
-    @classmethod
-    def load_generator(cls, filename: str):
-        model = {"model_type": "generator"}
-
-        return cls.load(filename, model)
 
     @classmethod
     def models(cls) -> List['TuneTheModel']:
@@ -299,10 +288,13 @@ class TuneTheModel():
         ]
 
     @classmethod
-    def load(cls, filename: str) -> 'TuneTheModel':
-        with open(filename, "r") as fl:
-            data = json.load(fl)
-            return cls.from_dict(data)
+    def load_model(cls, filename: str) -> 'TuneTheModel':
+        if os.path.isfile(filename):
+            with open(filename, "r") as fl:
+                data = json.load(fl)
+                return cls.from_dict(data)
+
+        logger.error("No such file")
 
     @classmethod
     def create_from_file(cls, filename: str, data: dict) -> 'TuneTheModel':

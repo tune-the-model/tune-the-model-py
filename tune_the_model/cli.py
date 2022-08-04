@@ -294,7 +294,7 @@ class TuneTheModel():
                 data = json.load(fl)
                 return cls.from_dict(data)
 
-        logger.error("No such file")
+        raise TuneTheModelException("No such file")
 
     @classmethod
     def create_from_file(cls, filename: str, data: dict) -> 'TuneTheModel':

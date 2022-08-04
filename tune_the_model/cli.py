@@ -240,7 +240,7 @@ class TuneTheModel():
         return cls.from_dict(r)
 
     @classmethod
-    def create_classifier(cls, filename: str, train_iters: int = None, num_classes: int = None):
+    def create_classifier(cls, filename: str=None, train_iters: int = None, num_classes: int = None):
         model = {"model_type": "classifier"}
 
         model["model_params"] = {}
@@ -249,16 +249,28 @@ class TuneTheModel():
         if num_classes:
             model["model_params"]["num_classes"] = num_classes
 
-        return cls.load_or_create(filename, model)
+        return cls.create_from_file(filename, model)
 
     @classmethod
-    def create_generator(cls, filename: str, train_iters: int = None):
+    def load_classifier(cls, filename: str):
+        model = {"model_type": "classifier"}
+
+        return cls.load(filename, model)
+
+    @classmethod
+    def create_generator(cls, filename: str=None, train_iters: int = None):
         model = {"model_type": "generator"}
 
         if train_iters:
             model["model_params"] = {"train_iters": train_iters}
 
-        return cls.load_or_create(filename, model)
+        return cls.create_from_file(filename, model)
+
+    @classmethod
+    def load_generator(cls, filename: str):
+        model = {"model_type": "generator"}
+
+        return cls.load(filename, model)
 
     @classmethod
     def models(cls) -> List['TuneTheModel']:
@@ -275,15 +287,14 @@ class TuneTheModel():
             return cls.from_dict(data)
 
     @classmethod
-    def load_or_create(cls, filename: str, data: dict) -> 'TuneTheModel':
-        if os.path.isfile(filename):
-            model = cls.load(filename)
-            if model.type != data["model_type"]:
-                raise TuneTheModelException(
-                    f"Model in the file is not {data['model_type']}")
-        else:
-            model = cls.create(data)
-            model.save(filename)
+    def create_from_file(cls, filename: str, data: dict) -> 'TuneTheModel':
+        model = cls.create(data)
+
+        if filename:
+            if os.path.isfile(filename):
+                logger.warning("This file is already exists and will be overwriten")
+                model.save(filename)
+
         return model
 
     @inited
@@ -436,7 +447,7 @@ class TuneTheModel():
 
 
 def tune_generator(
-    filename: str,
+    filename: str=None,
     train_X: Union[list, Series, ndarray, None] = None,
     train_y: Union[list, Series, ndarray, None] = None,
     validate_X: Union[list, Series, ndarray, None] = None,
@@ -450,7 +461,7 @@ def tune_generator(
     random_state=None
 ) -> TuneTheModel:
     """Train the generator according to the given training data.
-
+_
     Examples:
         The following snippet shows how to train a generator using the splitted train and validation data sets.
 

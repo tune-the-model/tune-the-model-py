@@ -1,4 +1,4 @@
-from typing import Optional, List, Tuple
+from typing import Optional, Tuple
 import json
 import os
 

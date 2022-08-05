@@ -236,13 +236,13 @@ class TuneTheModel():
     _id: str = None
     _status: str = None
     _model_type: str = None
-    _model_user_name: str = None
+    _model_name: str = None
 
-    def __init__(self, model_name: str, status: str, model_type: str, *args, **kwargs):
-        self._id = model_name
+    def __init__(self, model_id: str, status: str, model_type: str, *args, **kwargs):
+        self._id = model_id
         self._status = status
         self._model_type = model_type
-        self._model_user_name = kwargs["user_name"] if "user_name" in kwargs else None
+        self._model_name = kwargs["name"] if "name" in kwargs else None
 
     @classmethod
     def from_dict(cls, model: dict) -> 'TuneTheModel':
@@ -259,8 +259,11 @@ class TuneTheModel():
         return cls.from_dict(r)
 
     @classmethod
-    def create_classifier(cls, filename: str=None, train_iters: int = None, num_classes: int = None):
+    def create_classifier(cls, name: str = None, filename: str = None, train_iters: int = None, num_classes: int = None):
         model = {"model_type": "classifier"}
+
+        if name:
+            model["name"] = name
 
         model["model_params"] = {}
         if train_iters:
@@ -268,16 +271,18 @@ class TuneTheModel():
         if num_classes:
             model["model_params"]["num_classes"] = num_classes
 
-        return cls.create_from_file(filename, model)
+        return cls.create_model(filename, model)
 
     @classmethod
-    def create_generator(cls, filename: str=None, train_iters: int = None):
+    def create_generator(cls, name: str = None, filename: str = None, train_iters: int = None):
         model = {"model_type": "generator"}
 
+        if name:
+            model["name"] = name
         if train_iters:
             model["model_params"] = {"train_iters": train_iters}
-
-        return cls.create_from_file(filename, model)
+        
+        return cls.create_model(filename, model)
 
     @classmethod
     def models(cls) -> List['TuneTheModel']:
@@ -297,12 +302,12 @@ class TuneTheModel():
         raise TuneTheModelException(f"No such file named {filename}")
 
     @classmethod
-    def create_from_file(cls, filename: str, data: dict) -> 'TuneTheModel':
+    def create_model(cls, filename: str, data: dict) -> 'TuneTheModel':
         model = cls.create(data)
 
         if filename:
             if os.path.isfile(filename):
-                logger.warning("This file is already exists and will be overwriten")
+                logger.warning("This file already exists and will be overwritten")
                 model.save(filename)
 
         return model
@@ -311,7 +316,7 @@ class TuneTheModel():
     def save(self, filename):
         with open(filename, "w") as fl:
             json.dump({
-                "model_name": self._id,
+                "model_id": self._id,
                 "status": self._status,
                 "model_type": self._model_type,
             }, fl)
@@ -465,6 +470,7 @@ def tune_generator(
     validate_X: Union[list, Series, ndarray, None] = None,
     validate_y: Union[list, Series, ndarray, None] = None,
     train_iters: int = None,
+    model_name: str = None,
     X: Union[list, Series, ndarray, None] = None,
     y: Union[list, Series, ndarray, None] = None,
     test_size=None,
@@ -527,19 +533,20 @@ _
     Raises:
         TuneTheModelException: If anything bad happens.
     """
-    model = TuneTheModel.create_generator(filename, train_iters)
-    model.fit(train_X, train_y, validate_X, validate_y, X, y,
-              test_size, train_size, shuffle, random_state)
+    model = TuneTheModel.create_generator(filename=filename, train_iters=train_iters, model_name=model_name)
+    model.fit(train_X=train_X, train_y=train_y, validate_X=validate_X, validate_y=validate_y, X=X, y=y,
+              test_size=test_size, train_size=train_size, shuffle=shuffle, random_state=random_state)
     return model
 
 
 def tune_classifier(
-    filename: str,
+    filename: str = None,
     train_X: Union[list, Series, ndarray, None] = None,
     train_y: Union[list, Series, ndarray, None] = None,
     validate_X: Union[list, Series, ndarray, None] = None,
     validate_y: Union[list, Series, ndarray, None] = None,
     train_iters: int = None,
+    model_name: str = None,
     num_classes: int = None,
     X: Union[list, Series, ndarray, None] = None,
     y: Union[list, Series, ndarray, None] = None,
@@ -606,9 +613,9 @@ def tune_classifier(
     Raises:
         TuneTheModelException: If anything bad happens.
     """
-    model = TuneTheModel.create_classifier(filename, train_iters, num_classes)
-    model.fit(train_X, train_y, validate_X, validate_y, X, y,
-              test_size, train_size, shuffle, random_state)
+    model = TuneTheModel.create_classifier(filename=filename, train_iters=train_iters, num_classes=num_classes, model_name=model_name)
+    model.fit(train_X=train_X, train_y=train_y, validate_X=validate_X, validate_y=validate_y, X=X, y=y,
+              test_size=test_size, train_size=train_size, shuffle=shuffle, random_state=random_state)
     return model
 
 

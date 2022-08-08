@@ -1,8 +1,11 @@
 import os
 
 from datasets import load_dataset
+import numpy as np
 import pandas as pd
+from sklearn.metrics import f1_score
 import pytest
+import multiprocessing as mp
 
 import tune_the_model as ttm
 
@@ -91,11 +94,18 @@ def test_trained_classifier(trained_classifier, dataset):
     assert len(res_validation) > 0
 
 
+def classify_many(model, data):
+    with mp.Pool(5) as p:
+        predictions = np.argmax(p.map(model.classify, data), axis=1)
+    return predictions
+
+
 def test_trained_multiclass(configured_tune_the_model, tmpdir_factory):
     dataset = load_dataset("qanastek/MASSIVE", "ru-RU")
 
     train = pd.DataFrame(dataset['train'])
     validation = pd.DataFrame(dataset['validation'])
+    test = pd.DataFrame(dataset['test'])
 
     model = ttm.tune_classifier(
         tmpdir_factory.mktemp("models").join("classifier.json"),
@@ -109,6 +119,10 @@ def test_trained_multiclass(configured_tune_the_model, tmpdir_factory):
 
     model.wait_for_training_finish()
     model.classify(input="поставь будильник на 9 утра")
+
+    predictions = classify_many(model, test['utt'])
+    test_f1 = f1_score(test['intent'], predictions, average='macro')
+    assert test_f1 > 0.75
 
     model.delete()
 

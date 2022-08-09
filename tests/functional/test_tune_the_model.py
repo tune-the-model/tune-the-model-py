@@ -34,7 +34,6 @@ def classifier(configured_tune_the_model, tmpdir_factory, dataset):
         train['label'],
         validation['text'],
         validation['label'],
-        train_iters=TRAIN_ITERS
     )
 
     yield model
@@ -84,6 +83,12 @@ def trained_classifier(classifier):
     yield classifier
 
 
+def classify_many(model, data):
+    with mp.Pool(5) as p:
+        predictions = p.map(model.classify, data)
+    return predictions
+
+
 def test_trained_classifier(trained_classifier, dataset):
     assert trained_classifier.status == ttm.TuneTheModelStatus.READY
 
@@ -93,11 +98,10 @@ def test_trained_classifier(trained_classifier, dataset):
 
     assert len(res_validation) > 0
 
-
-def classify_many(model, data):
-    with mp.Pool(5) as p:
-        predictions = np.argmax(p.map(model.classify, data), axis=1)
-    return predictions
+    predictions = classify_many(trained_classifier, dataset['test']['text'])
+    predictions = [int(prob > 0.5) for prob in predictions]
+    test_f1 = f1_score(dataset['test']['label'], predictions)
+    assert test_f1 > 0.65
 
 
 def test_trained_multiclass(configured_tune_the_model, tmpdir_factory):
@@ -113,7 +117,6 @@ def test_trained_multiclass(configured_tune_the_model, tmpdir_factory):
         train['intent'],
         validation['utt'],
         validation['intent'],
-        train_iters=TRAIN_ITERS,
         num_classes=60
     )
 
@@ -121,6 +124,7 @@ def test_trained_multiclass(configured_tune_the_model, tmpdir_factory):
     model.classify(input="поставь будильник на 9 утра")
 
     predictions = classify_many(model, test['utt'])
+    predictions = np.argmax(predictions, axis=1)
     test_f1 = f1_score(test['intent'], predictions, average='macro')
     assert test_f1 > 0.75
 

@@ -1,5 +1,6 @@
 import os
 import json
+import logging
 
 from enum import Enum
 from functools import wraps
@@ -15,9 +16,7 @@ from tune_the_model.resource import (
     TuneTheModelException,
 )
 
-import logging
-
-logger = logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 MINIMUM_ENTRIES = 32
@@ -152,12 +151,11 @@ class TuneTheModelFile():
 
     @inited
     def wait_for_uploading_finish(self, sleep_for: int = 1):
-        logger.info("We are taking your files on upload")
+        log.info("Uploading files")
         while self.status is not TuneTheModelFileStatus.READY:
-            if TuneTheModelFileStatus.FAILED:
-                logger.error("Something went wrong during upload. Please contact us about this issue")
+            if (self.status is TuneTheModelFileStatus.FAILED):
+                log.error("Something went wrong during the upload process. Please, contact us")
             sleep(sleep_for)
-
 
     @inited
     def upload(
@@ -420,10 +418,10 @@ class TuneTheModel():
 
     @inited
     def wait_for_training_finish(self, sleep_for: int = 60):
-        logger.info("We are taking your model in work")
+        log.info("Waiting until model is ready")
         while self.status is not TuneTheModelStatus.READY:
             if (self.status is TuneTheModelStatus.FAILED):
-                logger.error("Fit failed, something went wrong. Please contact us about this issue")
+                log.error("Something went wrong during the fit process. Please, contact us")
             sleep(sleep_for)
 
     @inited

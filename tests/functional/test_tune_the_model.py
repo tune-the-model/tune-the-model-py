@@ -27,9 +27,9 @@ def classifier(configured_tune_the_model, tmpdir_factory, dataset):
 
     model = ttm.tune_classifier(
         tmpdir_factory.mktemp("models").join("classifier.json"),
-        train['text'], 
-        train['label'], 
-        validation['text'], 
+        train['text'],
+        train['label'],
+        validation['text'],
         validation['label'],
         train_iters=TRAIN_ITERS
     )
@@ -83,8 +83,6 @@ def trained_classifier(classifier):
 
 def test_trained_classifier(trained_classifier, dataset):
     assert trained_classifier.status == ttm.TuneTheModelStatus.READY
-
-    validation = pd.DataFrame(dataset['validation'])
 
     res_validation = []
     for text in dataset['validation']['text']:

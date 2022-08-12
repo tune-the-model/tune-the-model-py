@@ -1,6 +1,7 @@
 from genericpath import isfile
 import os
 import json
+import logging
 
 from enum import Enum
 from functools import wraps
@@ -9,17 +10,13 @@ from typing import List, Union
 
 from pandas import Series
 from numpy import ndarray
-from urllib3 import Retry
 
 from tune_the_model.resource import (
     TuneTheModelAPI,
     TuneTheModelException,
 )
 
-import logging
-
-logger = logging.getLogger(__name__)
-
+log = logging.getLogger(__name__)
 
 MINIMUM_ENTRIES = 32
 
@@ -65,12 +62,14 @@ class TuneTheModelFile():
     _status: str = None
     _task_type: str = None
     _file_name: str = None
+    _upload_url: str = None
 
     def __init__(self, file_id: str, status: str, task_type: str, file_name: str, *args, **kwargs):
         self._id = file_id
         self._status = status
         self._task_type = task_type
         self._file_name = file_name
+        self._upload_url = kwargs.get("upload_url")
 
     @classmethod
     def from_dict(cls, model: dict) -> 'TuneTheModelFile':
@@ -152,15 +151,6 @@ class TuneTheModelFile():
         return r
 
     @inited
-    def wait_for_uploading_finish(self, sleep_for: int = 1):
-        logger.info("We are taking your files on upload")
-        while self.status is not TuneTheModelFileStatus.READY:
-            if TuneTheModelFileStatus.FAILED:
-                logger.error("Something went wrong during upload. Please contact us about this issue")
-            sleep(sleep_for)
-
-
-    @inited
     def upload(
         self,
         X: Union[list, Series, ndarray],
@@ -192,16 +182,7 @@ class TuneTheModelFile():
 
         data = json.dumps(data, default=_default)
 
-        def MB(i):
-            return i / 1024 ** 2
-
-        upper_limit = 8 * 1024 ** 2
-        if len(data) > upper_limit:
-            raise TuneTheModelException(
-                f"Payload exceeds the limit {MB(upper_limit):0.1f}MB with size of {MB(len(data)):0.2f}MB"
-            )
-
-        return TuneTheModelAPI.upload_file(self._id, data=data)
+        return TuneTheModelAPI.upload_file(self._upload_url, data=data)
 
     @classmethod
     def files(cls) -> List['TuneTheModel']:
@@ -377,9 +358,6 @@ class TuneTheModel():
         validate_file = TuneTheModelFile.create("val", self.type)
         validate_file.upload(validate_X, validate_y)
 
-        train_file.wait_for_uploading_finish()
-        validate_file.wait_for_uploading_finish()
-
         self.bind(train_file, validate_file)
 
         if self.status is not TuneTheModelStatus.DATASETS_LOADED:
@@ -403,7 +381,7 @@ class TuneTheModel():
         Raises:
             TuneTheModelException: If anything bad happens.
         """
-        r = TuneTheModelAPI.generate(self._id, {"input" : input})
+        r = TuneTheModelAPI.generate(self._id, {"input": input})
         return r["answer"]["responses"][0]["response"]
 
     @inited
@@ -424,10 +402,11 @@ class TuneTheModel():
 
     @inited
     def wait_for_training_finish(self, sleep_for: int = 60):
-        logger.info("We are taking your model in work")
+        log.info("Waiting until model is ready")
         while self.status is not TuneTheModelStatus.READY:
             if (self.status is TuneTheModelStatus.FAILED):
-                logger.error("Fit failed, something went wrong. Please contact us about this issue")
+                raise TuneTheModelException(
+                    "Something went wrong during the fit process. Please, contact us")
             sleep(sleep_for)
 
     @inited
@@ -612,7 +591,7 @@ def tune_classifier(
     return model
 
 
-def generate(input: str, model_id: str="default-generator"):
+def generate(input: str, model_id: str = "default-generator"):
     """Generates a suffix based on an input prefix.
 
     Args:

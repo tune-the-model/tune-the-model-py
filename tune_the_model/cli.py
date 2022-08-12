@@ -154,7 +154,8 @@ class TuneTheModelFile():
         log.info("Uploading files")
         while self.status is not TuneTheModelFileStatus.READY:
             if (self.status is TuneTheModelFileStatus.FAILED):
-                log.error("Something went wrong during the upload process. Please, contact us")
+                raise TuneTheModelException (
+                    "Something went wrong during the upload process. Please, contact us")
             sleep(sleep_for)
 
     @inited
@@ -421,7 +422,8 @@ class TuneTheModel():
         log.info("Waiting until model is ready")
         while self.status is not TuneTheModelStatus.READY:
             if (self.status is TuneTheModelStatus.FAILED):
-                log.error("Something went wrong during the fit process. Please, contact us")
+                raise TuneTheModelException(
+                    "Something went wrong during the fit process. Please, contact us")
             sleep(sleep_for)
 
     @inited

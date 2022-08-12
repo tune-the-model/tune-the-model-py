@@ -62,12 +62,14 @@ class TuneTheModelFile():
     _status: str = None
     _task_type: str = None
     _file_name: str = None
+    _upload_url: str = None
 
     def __init__(self, file_id: str, status: str, task_type: str, file_name: str, *args, **kwargs):
         self._id = file_id
         self._status = status
         self._task_type = task_type
         self._file_name = file_name
+        self._upload_url = kwargs.get("upload_url")
 
     @classmethod
     def from_dict(cls, model: dict) -> 'TuneTheModelFile':
@@ -149,15 +151,6 @@ class TuneTheModelFile():
         return r
 
     @inited
-    def wait_for_uploading_finish(self, sleep_for: int = 1):
-        log.info("Uploading files")
-        while self.status is not TuneTheModelFileStatus.READY:
-            if (self.status is TuneTheModelFileStatus.FAILED):
-                raise TuneTheModelException (
-                    "Something went wrong during the upload process. Please, contact us")
-            sleep(sleep_for)
-
-    @inited
     def upload(
         self,
         X: Union[list, Series, ndarray],
@@ -189,16 +182,7 @@ class TuneTheModelFile():
 
         data = json.dumps(data, default=_default)
 
-        def MB(i):
-            return i / 1024 ** 2
-
-        upper_limit = 8 * 1024 ** 2
-        if len(data) > upper_limit:
-            raise TuneTheModelException(
-                f"Payload exceeds the limit {MB(upper_limit):0.1f}MB with size of {MB(len(data)):0.2f}MB"
-            )
-
-        return TuneTheModelAPI.upload_file(self._id, data=data)
+        return TuneTheModelAPI.upload_file(self._upload_url, data=data)
 
     @classmethod
     def files(cls) -> List['TuneTheModel']:
@@ -371,9 +355,6 @@ class TuneTheModel():
 
         validate_file = TuneTheModelFile.create("val", self.type)
         validate_file.upload(validate_X, validate_y)
-
-        train_file.wait_for_uploading_finish()
-        validate_file.wait_for_uploading_finish()
 
         self.bind(train_file, validate_file)
 

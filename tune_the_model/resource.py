@@ -33,7 +33,6 @@ class TuneTheModelAPI():
         "delete_model": ("DELETE", "{}/v0/models/{}/delete"),
         "create_file": ("POST", "{}/v0/files"),
         "files": ("GET", "{}/v0/files"),
-        "upload_file": ("POST", "{}/v0/files/{}/upload"),
         "file_status": ("GET", "{}/v0/files/{}/status"),
         "delete_file": ("DELETE", "{}/v0/files/{}/delete"),
     }
@@ -111,8 +110,8 @@ class TuneTheModelAPI():
         return cls._request(*cls._get_V0("create_file"), data=json.dumps(data))
 
     @classmethod
-    def upload_file(cls, id: str, data: dict) -> dict:
-        return cls._request(*cls._get_V0("upload_file", id), data=data)
+    def upload_file(cls, upload_url: str, data: dict) -> dict:
+        return requests.put(upload_url, data=data)
 
     @classmethod
     def delete_model(cls, id: str) -> dict:

@@ -1,5 +1,6 @@
 import os
 import json
+import logging
 
 from enum import Enum
 from functools import wraps
@@ -14,6 +15,7 @@ from tune_the_model.resource import (
     TuneTheModelException,
 )
 
+log = logging.getLogger(__name__)
 
 MINIMUM_ENTRIES = 32
 
@@ -59,12 +61,14 @@ class TuneTheModelFile():
     _status: str = None
     _task_type: str = None
     _file_name: str = None
+    _upload_url: str = None
 
     def __init__(self, file_id: str, status: str, task_type: str, file_name: str, *args, **kwargs):
         self._id = file_id
         self._status = status
         self._task_type = task_type
         self._file_name = file_name
+        self._upload_url = kwargs.get("upload_url")
 
     @classmethod
     def from_dict(cls, model: dict) -> 'TuneTheModelFile':
@@ -146,11 +150,6 @@ class TuneTheModelFile():
         return r
 
     @inited
-    def wait_for_uploading_finish(self, sleep_for: int = 1):
-        while self.status is not TuneTheModelFileStatus.READY:
-            sleep(sleep_for)
-
-    @inited
     def upload(
         self,
         X: Union[list, Series, ndarray],
@@ -182,16 +181,7 @@ class TuneTheModelFile():
 
         data = json.dumps(data, default=_default)
 
-        def MB(i):
-            return i / 1024 ** 2
-
-        upper_limit = 8 * 1024 ** 2
-        if len(data) > upper_limit:
-            raise TuneTheModelException(
-                f"Payload exceeds the limit {MB(upper_limit):0.1f}MB with size of {MB(len(data)):0.2f}MB"
-            )
-
-        return TuneTheModelAPI.upload_file(self._id, data=data)
+        return TuneTheModelAPI.upload_file(self._upload_url, data=data)
 
     @classmethod
     def files(cls) -> List['TuneTheModel']:
@@ -244,12 +234,7 @@ class TuneTheModel():
         return cls.from_dict(r)
 
     @classmethod
-    def create(cls, data: dict) -> 'TuneTheModel':
-        r = TuneTheModelAPI.create(data)
-        return cls.from_dict(r)
-
-    @classmethod
-    def create_classifier(cls, filename: str, train_iters: int = None, num_classes: int = None):
+    def create_classifier(cls, filename: str = None, train_iters: int = None, num_classes: int = None):
         model = {"model_type": "classifier"}
 
         model["model_params"] = {}
@@ -258,16 +243,16 @@ class TuneTheModel():
         if num_classes:
             model["model_params"]["num_classes"] = num_classes
 
-        return cls.load_or_create(filename, model)
+        return cls.create(model, filename)
 
     @classmethod
-    def create_generator(cls, filename: str, train_iters: int = None):
+    def create_generator(cls, filename: str = None, train_iters: int = None):
         model = {"model_type": "generator"}
 
         if train_iters:
             model["model_params"] = {"train_iters": train_iters}
 
-        return cls.load_or_create(filename, model)
+        return cls.create(model, filename)
 
     @classmethod
     def models(cls) -> List['TuneTheModel']:
@@ -278,21 +263,24 @@ class TuneTheModel():
         ]
 
     @classmethod
-    def load(cls, filename: str) -> 'TuneTheModel':
-        with open(filename, "r") as fl:
-            data = json.load(fl)
-            return cls.from_dict(data)
+    def load_model(cls, filename: str) -> 'TuneTheModel':
+        if os.path.isfile(filename):
+            with open(filename, "r") as fl:
+                data = json.load(fl)
+                return cls.from_dict(data)
+
+        raise TuneTheModelException(f"No such file named {filename}")
 
     @classmethod
-    def load_or_create(cls, filename: str, data: dict) -> 'TuneTheModel':
-        if os.path.isfile(filename):
-            model = cls.load(filename)
-            if model.type != data["model_type"]:
-                raise TuneTheModelException(
-                    f"Model in the file is not {data['model_type']}")
-        else:
-            model = cls.create(data)
+    def create(cls, data: dict, filename: str = None) -> 'TuneTheModel':
+        response = TuneTheModelAPI.create(data)
+        model = cls.from_dict(response)
+
+        if filename:
+            if os.path.isfile(filename):
+                log.warning(f"File {filename} already exists and will be overwriten")
             model.save(filename)
+
         return model
 
     @inited
@@ -365,9 +353,6 @@ class TuneTheModel():
         validate_file = TuneTheModelFile.create("val", self.type)
         validate_file.upload(validate_X, validate_y)
 
-        train_file.wait_for_uploading_finish()
-        validate_file.wait_for_uploading_finish()
-
         self.bind(train_file, validate_file)
 
         if self.status is not TuneTheModelStatus.DATASETS_LOADED:
@@ -412,13 +397,18 @@ class TuneTheModel():
 
     @inited
     def wait_for_training_finish(self, sleep_for: int = 60):
+        log.info("Waiting until model is ready")
         while self.status is not TuneTheModelStatus.READY:
+            if (self.status is TuneTheModelStatus.FAILED):
+                raise TuneTheModelException(
+                    "Something went wrong during the fit process. Please, contact us")
             sleep(sleep_for)
 
     @inited
     def bind(self, train_file: TuneTheModelFile, validate_file: TuneTheModelFile) -> 'TuneTheModel':
         TuneTheModelAPI.bind(self._id, data={
-                         "train_file": train_file.id, "validate_file": validate_file.id})
+            "train_file": train_file.id, "validate_file": validate_file.id
+        })
         self._update_status()
         return self
 
@@ -444,7 +434,7 @@ class TuneTheModel():
 
 
 def tune_generator(
-    filename: str,
+    filename: str = None,
     train_X: Union[list, Series, ndarray, None] = None,
     train_y: Union[list, Series, ndarray, None] = None,
     validate_X: Union[list, Series, ndarray, None] = None,

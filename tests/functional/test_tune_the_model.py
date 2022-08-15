@@ -100,7 +100,7 @@ def test_trained_classifier(trained_classifier, dataset):
     assert len(res_validation) > 0
 
     predictions = classify_many(trained_classifier, dataset['test']['text'])
-    predictions = [int(prob > 0.5) for prob in predictions]
+    predictions = [int(prob[0] > 0.5) for prob in predictions]
     test_f1 = f1_score(dataset['test']['label'], predictions)
     assert test_f1 > 0.57
 

@@ -273,12 +273,12 @@ class TuneTheModel():
 
     @classmethod
     def create(cls, data: dict, filename: str = None) -> 'TuneTheModel':
-        req = TuneTheModelAPI.create(data)
-        model = cls.from_dict(req)
+        response = TuneTheModelAPI.create(data)
+        model = cls.from_dict(response)
 
         if filename:
             if os.path.isfile(filename):
-                log.warning("This file is already exists and will be overwriten")
+                log.warning(f"This file {filename} already exists and will be overwriten")
             model.save(filename)
 
         return model

@@ -1,4 +1,3 @@
-from genericpath import isfile
 import os
 import json
 import logging
@@ -263,7 +262,7 @@ class TuneTheModel():
             model["name"] = name
         if train_iters:
             model["model_params"] = {"train_iters": train_iters}
-        
+
         return cls.create_model(filename, model)
 
     @classmethod
@@ -289,7 +288,7 @@ class TuneTheModel():
 
         if filename:
             if os.path.isfile(filename):
-                logger.warning("This file already exists and will be overwritten")
+                log.warning("This file already exists and will be overwritten")
                 model.save(filename)
 
         return model
@@ -418,7 +417,7 @@ class TuneTheModel():
     @inited
     def bind(self, train_file: TuneTheModelFile, validate_file: TuneTheModelFile) -> 'TuneTheModel':
         TuneTheModelAPI.bind(self._id, data={
-                         "train_file": train_file.id, "validate_file": validate_file.id})
+            "train_file": train_file.id, "validate_file": validate_file.id})
         self._update_status()
         return self
 
@@ -444,7 +443,7 @@ class TuneTheModel():
 
 
 def tune_generator(
-    filename: str=None,
+    filename: str = None,
     train_X: Union[list, Series, ndarray, None] = None,
     train_y: Union[list, Series, ndarray, None] = None,
     validate_X: Union[list, Series, ndarray, None] = None,

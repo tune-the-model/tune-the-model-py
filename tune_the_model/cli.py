@@ -278,7 +278,7 @@ class TuneTheModel():
 
         if filename:
             if os.path.isfile(filename):
-                log.warning(f"This file {filename} already exists and will be overwriten")
+                log.warning(f"File {filename} already exists and will be overwriten")
             model.save(filename)
 
         return model

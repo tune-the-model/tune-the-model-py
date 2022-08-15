@@ -234,11 +234,6 @@ class TuneTheModel():
         return cls.from_dict(r)
 
     @classmethod
-    def create(cls, data: dict) -> 'TuneTheModel':
-        r = TuneTheModelAPI.create(data)
-        return cls.from_dict(r)
-
-    @classmethod
     def create_classifier(cls, filename: str = None, train_iters: int = None, num_classes: int = None):
         model = {"model_type": "classifier"}
 
@@ -257,7 +252,7 @@ class TuneTheModel():
         if train_iters:
             model["model_params"] = {"train_iters": train_iters}
 
-        return cls.create_from_file(filename, model)
+        return cls.create(model, filename)
 
     @classmethod
     def models(cls) -> List['TuneTheModel']:
@@ -277,13 +272,14 @@ class TuneTheModel():
         raise TuneTheModelException(f"No such file named {filename}")
 
     @classmethod
-    def create_from_file(cls, filename: str, data: dict) -> 'TuneTheModel':
-        model = cls.create(data)
+    def create(cls, data: dict, filename: str = None) -> 'TuneTheModel':
+        req = TuneTheModelAPI.create(data)
+        model = cls.from_dict(req)
 
         if filename:
             if os.path.isfile(filename):
                 log.warning("This file is already exists and will be overwriten")
-                model.save(filename)
+            model.save(filename)
 
         return model
 

@@ -1,4 +1,3 @@
-from genericpath import isfile
 import os
 import json
 import logging
@@ -240,7 +239,7 @@ class TuneTheModel():
         return cls.from_dict(r)
 
     @classmethod
-    def create_classifier(cls, filename: str=None, train_iters: int = None, num_classes: int = None):
+    def create_classifier(cls, filename: str = None, train_iters: int = None, num_classes: int = None):
         model = {"model_type": "classifier"}
 
         model["model_params"] = {}
@@ -252,7 +251,7 @@ class TuneTheModel():
         return cls.create_from_file(filename, model)
 
     @classmethod
-    def create_generator(cls, filename: str=None, train_iters: int = None):
+    def create_generator(cls, filename: str = None, train_iters: int = None):
         model = {"model_type": "generator"}
 
         if train_iters:
@@ -283,7 +282,7 @@ class TuneTheModel():
 
         if filename:
             if os.path.isfile(filename):
-                logger.warning("This file is already exists and will be overwriten")
+                log.warning("This file is already exists and will be overwriten")
                 model.save(filename)
 
         return model

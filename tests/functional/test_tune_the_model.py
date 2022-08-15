@@ -34,6 +34,7 @@ def classifier(configured_tune_the_model, tmpdir_factory, dataset):
         train['label'],
         validation['text'],
         validation['label'],
+        train_iters=TRAIN_ITERS
     )
 
     yield model
@@ -101,7 +102,7 @@ def test_trained_classifier(trained_classifier, dataset):
     predictions = classify_many(trained_classifier, dataset['test']['text'])
     predictions = [int(prob > 0.5) for prob in predictions]
     test_f1 = f1_score(dataset['test']['label'], predictions)
-    assert test_f1 > 0.65
+    assert test_f1 > 0.57
 
 
 def test_trained_multiclass(configured_tune_the_model, tmpdir_factory):
@@ -117,7 +118,8 @@ def test_trained_multiclass(configured_tune_the_model, tmpdir_factory):
         train['intent'],
         validation['utt'],
         validation['intent'],
-        num_classes=60
+        num_classes=60,
+        train_iters=TRAIN_ITERS
     )
 
     model.wait_for_training_finish()
@@ -126,7 +128,7 @@ def test_trained_multiclass(configured_tune_the_model, tmpdir_factory):
     predictions = classify_many(model, test['utt'])
     predictions = np.argmax(predictions, axis=1)
     test_f1 = f1_score(test['intent'], predictions, average='macro')
-    assert test_f1 > 0.75
+    assert test_f1 > 0.70
 
     model.delete()
 

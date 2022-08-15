@@ -216,13 +216,13 @@ class TuneTheModel():
     _id: str = None
     _status: str = None
     _model_type: str = None
-    _model_name: str = None
+    _name: str = None
 
     def __init__(self, model_id: str, status: str, model_type: str, *args, **kwargs):
         self._id = model_id
         self._status = status
         self._model_type = model_type
-        self._model_name = kwargs["name"] if "name" in kwargs else None
+        self._name = kwargs["name"] if "name" in kwargs else None
 
     @classmethod
     def from_dict(cls, model: dict) -> 'TuneTheModel':
@@ -439,13 +439,13 @@ class TuneTheModel():
 
 
 def tune_generator(
-    filename: str = None,
+    filename: str=None,
     train_X: Union[list, Series, ndarray, None] = None,
     train_y: Union[list, Series, ndarray, None] = None,
     validate_X: Union[list, Series, ndarray, None] = None,
     validate_y: Union[list, Series, ndarray, None] = None,
     train_iters: int = None,
-    model_name: str = None,
+    name: str = None,
     X: Union[list, Series, ndarray, None] = None,
     y: Union[list, Series, ndarray, None] = None,
     test_size=None,
@@ -508,7 +508,7 @@ def tune_generator(
     Raises:
         TuneTheModelException: If anything bad happens.
     """
-    model = TuneTheModel.create_generator(filename=filename, train_iters=train_iters, model_name=model_name)
+    model = TuneTheModel.create_generator(filename=filename, train_iters=train_iters, name=name)
     model.fit(train_X=train_X, train_y=train_y, validate_X=validate_X, validate_y=validate_y, X=X, y=y,
               test_size=test_size, train_size=train_size, shuffle=shuffle, random_state=random_state)
     return model
@@ -521,7 +521,7 @@ def tune_classifier(
     validate_X: Union[list, Series, ndarray, None] = None,
     validate_y: Union[list, Series, ndarray, None] = None,
     train_iters: int = None,
-    model_name: str = None,
+    name: str = None,
     num_classes: int = None,
     X: Union[list, Series, ndarray, None] = None,
     y: Union[list, Series, ndarray, None] = None,
@@ -588,7 +588,7 @@ def tune_classifier(
     Raises:
         TuneTheModelException: If anything bad happens.
     """
-    model = TuneTheModel.create_classifier(filename=filename, train_iters=train_iters, num_classes=num_classes, model_name=model_name)
+    model = TuneTheModel.create_classifier(filename=filename, train_iters=train_iters, num_classes=num_classes, name=name)
     model.fit(train_X=train_X, train_y=train_y, validate_X=validate_X, validate_y=validate_y, X=X, y=y,
               test_size=test_size, train_size=train_size, shuffle=shuffle, random_state=random_state)
     return model

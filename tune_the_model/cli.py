@@ -439,7 +439,7 @@ class TuneTheModel():
 
 
 def tune_generator(
-    filename: str=None,
+    filename: str = None,
     train_X: Union[list, Series, ndarray, None] = None,
     train_y: Union[list, Series, ndarray, None] = None,
     validate_X: Union[list, Series, ndarray, None] = None,

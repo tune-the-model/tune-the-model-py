@@ -243,7 +243,7 @@ class TuneTheModel():
         if num_classes:
             model["model_params"]["num_classes"] = num_classes
 
-        return cls.create_from_file(filename, model)
+        return cls.create(model, filename)
 
     @classmethod
     def create_generator(cls, filename: str = None, train_iters: int = None):

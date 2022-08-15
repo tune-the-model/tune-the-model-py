@@ -17,7 +17,6 @@ from tune_the_model.resource import (
 
 log = logging.getLogger(__name__)
 
-
 MINIMUM_ENTRIES = 32
 
 
@@ -235,11 +234,6 @@ class TuneTheModel():
         return cls.from_dict(r)
 
     @classmethod
-    def create(cls, data: dict) -> 'TuneTheModel':
-        r = TuneTheModelAPI.create(data)
-        return cls.from_dict(r)
-
-    @classmethod
     def create_classifier(cls, name: str = None, filename: str = None, train_iters: int = None, num_classes: int = None):
         model = {"model_type": "classifier"}
 
@@ -252,7 +246,7 @@ class TuneTheModel():
         if num_classes:
             model["model_params"]["num_classes"] = num_classes
 
-        return cls.create_model(filename, model)
+        return cls.create(model, filename)
 
     @classmethod
     def create_generator(cls, name: str = None, filename: str = None, train_iters: int = None):
@@ -263,7 +257,7 @@ class TuneTheModel():
         if train_iters:
             model["model_params"] = {"train_iters": train_iters}
 
-        return cls.load_or_create(filename, model)
+        return cls.create(model, filename)
 
     @classmethod
     def models(cls) -> List['TuneTheModel']:
@@ -283,12 +277,13 @@ class TuneTheModel():
         raise TuneTheModelException(f"No such file named {filename}")
 
     @classmethod
-    def create_model(cls, filename: str, data: dict) -> 'TuneTheModel':
-        model = cls.create(data)
+    def create(cls, data: dict, filename: str = None) -> 'TuneTheModel':
+        response = TuneTheModelAPI.create(data)
+        model = cls.from_dict(response)
 
         if filename:
             if os.path.isfile(filename):
-                log.warning("This file already exists and will be overwritten")
+                log.warning(f"File {filename} already exists and will be overwriten")
             model.save(filename)
 
         return model
@@ -417,7 +412,8 @@ class TuneTheModel():
     @inited
     def bind(self, train_file: TuneTheModelFile, validate_file: TuneTheModelFile) -> 'TuneTheModel':
         TuneTheModelAPI.bind(self._id, data={
-            "train_file": train_file.id, "validate_file": validate_file.id})
+            "train_file": train_file.id, "validate_file": validate_file.id
+        })
         self._update_status()
         return self
 

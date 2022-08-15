@@ -263,7 +263,7 @@ class TuneTheModel():
         if train_iters:
             model["model_params"] = {"train_iters": train_iters}
 
-        return cls.create_model(filename, model)
+        return cls.load_or_create(filename, model)
 
     @classmethod
     def models(cls) -> List['TuneTheModel']:
@@ -289,7 +289,7 @@ class TuneTheModel():
         if filename:
             if os.path.isfile(filename):
                 log.warning("This file already exists and will be overwritten")
-                model.save(filename)
+            model.save(filename)
 
         return model
 
@@ -458,7 +458,7 @@ def tune_generator(
     random_state=None
 ) -> TuneTheModel:
     """Train the generator according to the given training data.
-_
+
     Examples:
         The following snippet shows how to train a generator using the splitted train and validation data sets.
 

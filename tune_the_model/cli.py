@@ -448,7 +448,7 @@ def tune_generator(
     random_state=None
 ) -> TuneTheModel:
     """Train the generator according to the given training data.
-_
+
     Examples:
         The following snippet shows how to train a generator using the splitted train and validation data sets.
 

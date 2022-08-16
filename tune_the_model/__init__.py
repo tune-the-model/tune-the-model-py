@@ -1,3 +1,9 @@
+from pkg_resources import parse_version, get_distribution
+import json
+import logging
+
+import requests
+
 from tune_the_model.cli import (
     TuneTheModelStatus,
     TuneTheModelType,
@@ -16,10 +22,7 @@ from tune_the_model.resource import (
 )
 
 
-from pkg_resources import parse_version, get_distribution
-import requests
-import json
-import logging
+log = logging.getLogger(__name__)
 
 
 def get_latest_version():
@@ -28,7 +31,6 @@ def get_latest_version():
 
 
 def warn_if_outdated():
-    log = logging.getLogger(__name__)
     current_version = get_distribution('tune-the-model').version
     latest_version = get_latest_version()
     if parse_version(current_version) < parse_version(latest_version):
@@ -36,7 +38,10 @@ def warn_if_outdated():
                     % (current_version, latest_version))
 
 
-warn_if_outdated()
+try:
+    warn_if_outdated()
+except Exception:
+    log.error('Something went wrong during package version check. Please contact us about this issue')
 
 
 __all__ = [

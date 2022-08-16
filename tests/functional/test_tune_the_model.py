@@ -54,6 +54,7 @@ def test_fewshot_generate(configured_tune_the_model):
     assert len(output) > 0
 
 
+@pytest.mark.skip()
 def test_train_classifier_with_large_dataset(configured_tune_the_model, tmpdir_factory, dataset):
     data = pd.DataFrame(dataset["train"])
 

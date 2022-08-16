@@ -16,8 +16,7 @@ from tune_the_model.resource import (
 )
 
 
-from importlib.metadata import version
-from pkg_resources import parse_version
+from pkg_resources import parse_version, get_distribution
 import requests
 import json
 import logging
@@ -30,7 +29,7 @@ def get_latest_version():
 
 def warn_if_outdated():
     log = logging.getLogger(__name__)
-    current_version = version('tune-the-model')
+    current_version = get_distribution('tune-the-model').version
     latest_version = get_latest_version()
     if parse_version(current_version) < parse_version(latest_version):
         log.warning('The package tune-the-model is out of date. Your version is %s, the latest is %s.'

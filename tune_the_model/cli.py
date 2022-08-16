@@ -423,7 +423,7 @@ class TuneTheModel():
                 "id": self._id,
                 "status": self._status,
                 "model_type": self._model_type,
-                "user_name": self._model_user_name,
+                "user_name": self._name,
             }
         )
 
@@ -433,7 +433,7 @@ class TuneTheModel():
                 "id": self._id,
                 "status": self._status,
                 "model_type": self._model_type,
-                "user_name": self._model_user_name,
+                "user_name": self._name,
             }
         )
 

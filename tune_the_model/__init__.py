@@ -1,18 +1,3 @@
-from importlib.metadata import version
-from pkg_resources import parse_version
-import requests
-import json
-
-
-def get_latest_version():
-    response = requests.get("https://pypi.python.org/pypi/tune-the-model/json").text
-    return json.loads(response)['info']['version']
-
-
-if (parse_version(version('tune-the-model')) < parse_version(get_latest_version())):
-    raise Exception("Update package")
-
-
 from tune_the_model.cli import (
     TuneTheModelStatus,
     TuneTheModelType,
@@ -29,6 +14,31 @@ from tune_the_model.resource import (
     TuneTheModelException,
     set_api_key
 )
+
+
+from importlib.metadata import version
+from pkg_resources import parse_version
+import requests
+import json
+import logging
+
+
+def get_latest_version():
+    response = requests.get("https://pypi.python.org/pypi/tune-the-model/json").text
+    return json.loads(response)['info']['version']
+
+
+def warn_if_outdated():
+    log = logging.getLogger(__name__)
+    current_version = version('tune-the-model')
+    latest_version = get_latest_version()
+    if parse_version(current_version) < parse_version(latest_version):
+        log.warning('The package tune-the-model is out of date. Your version is %s, the latest is %s.'
+                    % (current_version, latest_version))
+
+
+warn_if_outdated()
+
 
 __all__ = [
     "tune_the_model",

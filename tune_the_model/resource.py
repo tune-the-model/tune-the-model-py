@@ -86,7 +86,7 @@ class TuneTheModelAPI():
         return cls._request(*cls._get_V0("models"))
 
     @classmethod
-    def classify(cls, id: str, data: str) -> dict:
+    def classify(cls, id: str, data: dict) -> dict:
         return cls._request(*cls._get_V0("classify", id), data=json.dumps(data))
 
     @classmethod

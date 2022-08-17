@@ -397,7 +397,7 @@ class TuneTheModel():
         Raises:
             TuneTheModelException: If anything bad happens.
         """
-        r = TuneTheModelAPI.classify(self._id, input)
+        r = TuneTheModelAPI.classify(self._id, {"input": input})
         return r["answer"]["scores"]
 
     @inited

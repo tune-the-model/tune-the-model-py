@@ -34,7 +34,7 @@ def warn_if_outdated():
     current_version = get_distribution('tune-the-model').version
     latest_version = get_latest_version()
     if parse_version(current_version) < parse_version(latest_version):
-        log.warning('The package tune-the-model is out of date. Your version is %s, the latest is %s.'
+        log.warning('Please update the package using `pip install -U tune-the-model`. Your version is %s, the latest is %s.'
                     % (current_version, latest_version))
 
 

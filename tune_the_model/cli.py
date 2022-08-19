@@ -224,6 +224,10 @@ class TuneTheModel():
         self._model_type = model_type
         self._name = kwargs["name"] if "name" in kwargs else None
 
+    @property
+    def name(self):
+        return self._name
+
     @classmethod
     def from_dict(cls, model: dict) -> 'TuneTheModel':
         return cls(**model)
@@ -262,6 +266,14 @@ class TuneTheModel():
     @classmethod
     def models(cls) -> List['TuneTheModel']:
         r = TuneTheModelAPI.models()
+
+        return [
+            cls.from_dict(data) for data in r.get("models", [])
+        ]
+
+    @classmethod
+    def public_models(cls) -> List["TuneTheModel"]:
+        r = TuneTheModelAPI.public_models()
 
         return [
             cls.from_dict(data) for data in r.get("models", [])

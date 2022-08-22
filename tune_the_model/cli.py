@@ -224,6 +224,10 @@ class TuneTheModel():
         self._model_type = model_type
         self._name = kwargs["name"] if "name" in kwargs else None
 
+    @property
+    def name(self):
+        return self._name
+
     @classmethod
     def from_dict(cls, model: dict) -> 'TuneTheModel':
         return cls(**model)
@@ -262,6 +266,14 @@ class TuneTheModel():
     @classmethod
     def models(cls) -> List['TuneTheModel']:
         r = TuneTheModelAPI.models()
+
+        return [
+            cls.from_dict(data) for data in r.get("models", [])
+        ]
+
+    @classmethod
+    def public_models(cls) -> List["TuneTheModel"]:
+        r = TuneTheModelAPI.public_models()
 
         return [
             cls.from_dict(data) for data in r.get("models", [])
@@ -510,7 +522,7 @@ def tune_generator(
           The poor quality of this data set may lead to over-fitting.
         validate_y : Validation class labels.
         train_iters : Controls the number of train iterations.
-        X : Training atop_k: int = 50,nd validation data sets in one. It will be spltted with
+        X : Training and validation data sets in one. It will be spltted with
           the help of sklearn.model_selection.train_test_split for you before
           uploading.
         y : Class labels.

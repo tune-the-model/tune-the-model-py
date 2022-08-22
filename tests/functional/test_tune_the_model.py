@@ -42,7 +42,7 @@ def test_train_classifier(classifier):
 
 
 def test_fewshot_generate(configured_tune_the_model):
-    output = ttm.generate("Tell me a joke", min_tokens=20)
+    output = ttm.generate("Tell me a joke")
 
     assert len(output) > 0
 

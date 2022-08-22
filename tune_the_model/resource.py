@@ -6,7 +6,7 @@ import requests
 
 
 API_KEY = os.environ.get("TTM_API_KEY")
-API_URL = "http://iekar-pov-nux:1984"
+API_URL = "https://api.tunethemodel.com"
 
 
 def set_api_key(api_key):
@@ -96,8 +96,6 @@ class TuneTheModelAPI():
 
     @classmethod
     def generate(cls, id: str, data: dict) -> dict:
-        a = json.dumps(data)
-        b = type(data["top_k"])
         return cls._request(*cls._get_V0("generate", id), data=json.dumps(data))
 
     @classmethod

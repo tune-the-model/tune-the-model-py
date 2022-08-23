@@ -1,5 +1,3 @@
-import os
-
 from datasets import load_dataset
 import numpy as np
 import pandas as pd
@@ -11,11 +9,6 @@ import tune_the_model as ttm
 
 
 TRAIN_ITERS = 501
-
-
-@pytest.fixture(scope='session')
-def configured_tune_the_model():
-    ttm.set_api_key(os.environ.get("TTM_API_KEY"))
 
 
 @pytest.fixture(scope="session")
@@ -57,6 +50,7 @@ def test_fewshot_generate(configured_tune_the_model):
     assert len(output) > 0
 
 
+@pytest.mark.skip()
 def test_train_classifier_with_large_dataset(configured_tune_the_model, tmpdir_factory, dataset):
     data = pd.DataFrame(dataset["train"])
 

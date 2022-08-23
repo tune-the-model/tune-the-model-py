@@ -24,8 +24,9 @@ class TuneTheModelAPI():
     V0: dict = {
         "create": ("POST", "{}/v0/models"),
         "models": ("GET", "{}/v0/models"),
+        "public_models": ("GET", "{}/v0/public-models"),
         "generate": ("POST", "{}/v0/models/{}/generate"),
-        "classify": ("GET", "{}/v0/models/{}/classify"),
+        "classify": ("POST", "{}/v0/models/{}/classify"),
         "upload": ("POST", "{}/v0/models/{}/upload"),
         "status": ("GET", "{}/v0/models/{}/status"),
         "fit": ("POST", "{}/v0/models/{}/fit"),
@@ -86,8 +87,12 @@ class TuneTheModelAPI():
         return cls._request(*cls._get_V0("models"))
 
     @classmethod
-    def classify(cls, id: str, input: str) -> dict:
-        return cls._request(*cls._get_V0("classify", id), params={"input": input})
+    def public_models(cls) -> dict:
+        return cls._request(*cls._get_V0("public_models"))
+
+    @classmethod
+    def classify(cls, id: str, data: dict) -> dict:
+        return cls._request(*cls._get_V0("classify", id), data=json.dumps(data))
 
     @classmethod
     def generate(cls, id: str, data: dict) -> dict:

@@ -10,7 +10,7 @@ import multiprocessing as mp
 import tune_the_model as ttm
 
 
-TRAIN_ITERS = 101
+TRAIN_ITERS = 501
 
 
 @pytest.fixture(scope='session')

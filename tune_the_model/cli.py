@@ -236,7 +236,8 @@ class TuneTheModel():
         return cls.from_dict(r)
 
     @classmethod
-    def create_classifier(cls, name: str = None, filename: str = None, train_iters: int = None, num_classes: int = None, base_model: str = None):
+    def create_classifier(cls, name: str = None, filename: str = None, train_iters: int = None,
+                          num_classes: int = None, base_model: str = None):
         model = {"model_type": "classifier"}
 
         if name:
@@ -253,7 +254,8 @@ class TuneTheModel():
         return cls.create(model, filename)
 
     @classmethod
-    def create_generator(cls, name: str = None, filename: str = None, train_iters: int = None, base_model: str = None):
+    def create_generator(cls, name: str = None, filename: str = None, train_iters: int = None,
+                         base_model: str = None):
         model = {"model_type": "generator"}
 
         if name:
@@ -523,7 +525,8 @@ def tune_generator(
     Raises:
         TuneTheModelException: If anything bad happens.
     """
-    model = TuneTheModel.create_generator(filename=filename, train_iters=train_iters, name=name, base_model=base_model)
+    model = TuneTheModel.create_generator(filename=filename, train_iters=train_iters,
+                                          name=name, base_model=base_model)
     model.fit(train_X=train_X, train_y=train_y, validate_X=validate_X, validate_y=validate_y, X=X, y=y,
               test_size=test_size, train_size=train_size, shuffle=shuffle, random_state=random_state)
     return model
@@ -604,7 +607,8 @@ def tune_classifier(
     Raises:
         TuneTheModelException: If anything bad happens.
     """
-    model = TuneTheModel.create_classifier(filename=filename, train_iters=train_iters, num_classes=num_classes, name=name, base_model=base_model)
+    model = TuneTheModel.create_classifier(filename=filename, train_iters=train_iters, num_classes=num_classes,
+                                           name=name, base_model=base_model)
     model.fit(train_X=train_X, train_y=train_y, validate_X=validate_X, validate_y=validate_y, X=X, y=y,
               test_size=test_size, train_size=train_size, shuffle=shuffle, random_state=random_state)
     return model

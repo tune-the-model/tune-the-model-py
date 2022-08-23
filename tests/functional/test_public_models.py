@@ -39,7 +39,7 @@ def test_intent_classifier(public_model):
 
 @pytest.mark.parametrize("public_model", ["massive_slot_detection_gen"], indirect=True)
 def test_slot_detection_generator(public_model):
-    result = public_model.generate("Remind me to call Thomas tomorrow")
+    result = public_model.generate("Remind me to call Thomas tomorrow")[0]
 
     assert "Remind me" in result
     assert "Thomas" in result

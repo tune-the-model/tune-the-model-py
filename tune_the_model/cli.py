@@ -381,7 +381,19 @@ class TuneTheModel():
         return self
 
     @inited
-    def generate(self, input: str):
+    def generate(
+        self,
+        input: str,
+        num_hypos: int = 1,
+        min_tokens: int = 1,
+        max_tokens: int = 128,
+        temperature: float = 0.6,
+        top_k: int = 50,
+        top_p: float = None,
+        seed: int = None,
+        prefix_tokens_only: bool = False,
+        span_delimiters: str = None
+    ):
         """Generates a suffix based on an input prefix.
 
         Args:
@@ -393,7 +405,21 @@ class TuneTheModel():
         Raises:
             TuneTheModelException: If anything bad happens.
         """
-        r = TuneTheModelAPI.generate(self._id, {"input": input})
+        r = TuneTheModelAPI.generate(
+            self._id,
+            {
+                "input": input,
+                "num_hypos": num_hypos,
+                "min_tokens": min_tokens,
+                "max_tokens": max_tokens,
+                "temperature": temperature,
+                "top_k": top_k,
+                "top_p": top_p,
+                "seed": seed,
+                "prefix_tokens_only": prefix_tokens_only,
+                "span_delimiters": span_delimiters
+            }
+        )
         return r["answer"]["responses"][0]["response"]
 
     @inited
@@ -606,7 +632,19 @@ def tune_classifier(
     return model
 
 
-def generate(input: str, model_id: str = "default-generator"):
+def generate(
+    input: str,
+    model_id: str = "default-generator",
+    num_hypos: int = 1,
+    min_tokens: int = 1,
+    max_tokens: int = 128,
+    temperature: float = 0.6,
+    top_k: int = 50,
+    top_p: float = None,
+    seed: int = None,
+    prefix_tokens_only: bool = False,
+    span_delimiters: str = None
+):
     """Generates a suffix based on an input prefix.
 
     Args:
@@ -618,5 +656,14 @@ def generate(input: str, model_id: str = "default-generator"):
     Raises:
         TuneTheModelException: If anything bad happens.
     """
-    r = TuneTheModelAPI.generate(model_id, {"input": input})
-    return r["answer"]["responses"][0]["response"]
+    model = TuneTheModel.from_dict(
+        {
+            "model_id": model_id,
+            "status": TuneTheModelStatus.READY,
+            "model_type": TuneTheModelType.GENERATOR
+        }
+    )
+    r = model.generate(input, num_hypos=num_hypos, min_tokens=min_tokens, max_tokens=max_tokens,
+                       temperature=temperature, top_k=top_k, top_p=top_p, seed=seed,
+                       prefix_tokens_only=prefix_tokens_only, span_delimiters=span_delimiters)
+    return r

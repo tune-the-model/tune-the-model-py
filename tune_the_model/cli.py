@@ -420,7 +420,7 @@ class TuneTheModel():
                 "span_delimiters": span_delimiters
             }
         )
-        return r["answer"]["responses"][0]["response"]
+        return [response["response"] for response in r["answer"]["responses"]]
 
     @inited
     def classify(self, input: str):

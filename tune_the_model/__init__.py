@@ -41,7 +41,7 @@ def warn_if_outdated():
 try:
     warn_if_outdated()
 except Exception:
-    log.error('Something went wrong during package version check. Please contact us about this issue')
+    log.warn('Something went wrong during package version check. Please update the package regularly')
 
 
 __all__ = [

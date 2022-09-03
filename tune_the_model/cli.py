@@ -459,6 +459,7 @@ class TuneTheModel():
             if (self.status is TuneTheModelStatus.FAILED):
                 raise TuneTheModelException(
                     "Something went wrong during the fit process. Please, contact us")
+            print("\rModel status is ", self.status, end="")
             sleep(sleep_for)
 
     @inited

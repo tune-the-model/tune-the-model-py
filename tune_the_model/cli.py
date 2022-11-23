@@ -434,6 +434,9 @@ class TuneTheModel():
                 "span_delimiters": span_delimiters
             }
         )
+        for gen in r["answer"]["responses"]:
+            if "response" not in gen:
+                gen["response"] = ""
         return [response["response"] for response in r["answer"]["responses"]]
 
     @inited

@@ -1,11 +1,14 @@
 from datasets import load_dataset
+import numpy as np
 import pandas as pd
+from sklearn.metrics import f1_score
 import pytest
+import multiprocessing as mp
 
 import tune_the_model as ttm
 
 
-TRAIN_ITERS = 101
+TRAIN_ITERS = 501
 
 
 @pytest.fixture(scope="session")
@@ -75,6 +78,12 @@ def trained_classifier(classifier):
     yield classifier
 
 
+def classify_many(model, data):
+    with mp.Pool(5) as p:
+        predictions = p.map(model.classify, data)
+    return predictions
+
+
 def test_trained_classifier(trained_classifier, dataset):
     assert trained_classifier.status == ttm.TuneTheModelStatus.READY
 
@@ -84,12 +93,18 @@ def test_trained_classifier(trained_classifier, dataset):
 
     assert len(res_validation) > 0
 
+    predictions = classify_many(trained_classifier, dataset['test']['text'])
+    predictions = [int(prob[0] > 0.5) for prob in predictions]
+    test_f1 = f1_score(dataset['test']['label'], predictions)
+    assert test_f1 > 0.57
+
 
 def test_trained_multiclass(configured_tune_the_model, tmpdir_factory):
     dataset = load_dataset("qanastek/MASSIVE", "ru-RU")
 
     train = pd.DataFrame(dataset['train'])
     validation = pd.DataFrame(dataset['validation'])
+    test = pd.DataFrame(dataset['test'])
 
     model = ttm.tune_classifier(
         tmpdir_factory.mktemp("models").join("classifier.json"),
@@ -97,12 +112,17 @@ def test_trained_multiclass(configured_tune_the_model, tmpdir_factory):
         train['intent'],
         validation['utt'],
         validation['intent'],
-        train_iters=TRAIN_ITERS,
-        num_classes=60
+        num_classes=60,
+        train_iters=TRAIN_ITERS
     )
 
     model.wait_for_training_finish()
     model.classify(input="поставь будильник на 9 утра")
+
+    predictions = classify_many(model, test['utt'])
+    predictions = np.argmax(predictions, axis=1)
+    test_f1 = f1_score(test['intent'], predictions, average='macro')
+    assert test_f1 > 0.70
 
     model.delete()
 

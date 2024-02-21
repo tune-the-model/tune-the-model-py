@@ -176,7 +176,7 @@ class TuneTheModelFile():
             if isinstance(val, Series) or isinstance(val, ndarray):
                 return val.tolist()
 
-            raise TuneTheModel(
+            raise TuneTheModelException(
                 f"Value of type '{type(val)}' can not be serialized")
 
         data = json.dumps(data, default=_default)
